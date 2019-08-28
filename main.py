@@ -1,8 +1,8 @@
 import math
 import random
+from enum import IntEnum
 
 from bearlibterminal import terminal
-from enum import IntEnum
 
 
 class Team(IntEnum):
@@ -15,24 +15,29 @@ class Camera(object):
         self.focus_on = focus_on
 
     def draw(self):
+        set_sprite_font()
         half_width, half_height = int(game_area_width / 2), int(game_area_height / 2)
-        ox, oy = self.focus_on.x - half_width, self.focus_on.y - half_height
+        ox, oy = (self.focus_on.x * 2) - half_width, self.focus_on.y - half_height
         max_x, max_y = ox + game_area_width, oy + game_area_height
         level = self.focus_on.level
 
+        terminal.layer(1)
         draw_offset_y = top_gui_height
         for y, row_tiles in enumerate(level.tiles):
             dy = y - oy
             for x, tile in enumerate(row_tiles):
-                dx = x - ox
+                dx = (x * 2) - ox
                 if x > max_x or y > max_y or x < ox or y < oy:
                     continue
-                terminal.printf(dx, dy + draw_offset_y, tile)
+                terminal.put(dx, dy + draw_offset_y, tile)
 
+        terminal.layer(2)
         for actor in sorted(level.actors, key=lambda actor: actor.display_priority, reverse=True):
-            dx = actor.x - ox
+            dx = (actor.x * 2) - ox
             dy = actor.y - oy
-            terminal.printf(dx, dy + draw_offset_y, actor.display_char)
+
+            terminal.put(dx, dy + draw_offset_y, actor.display_char)
+        reset_font()
 
 
 class GameObject(object):
@@ -457,7 +462,7 @@ def game_loop(level, turn):
     terminal.clear()
     camera.draw()
     update_messages()
-    draw_top_gui(player)
+    draw_top_gui(player, turn)
     terminal.refresh()
 
 
@@ -489,7 +494,7 @@ def get_directional_pos():
             return
 
 
-def draw_top_gui(player):
+def draw_top_gui(player, turn):
     terminal.printf(0, 0, "-" * screen_width)
     terminal.printf(0, top_gui_height, "-" * screen_width)
     for i in range(1, top_gui_height):
@@ -506,7 +511,32 @@ def draw_top_gui(player):
     terminal.printf(30, 3, "Crushed:%s" % player.enemies_crushed)
 
 
+def set_sprites():
+    if not graphical_tiles:
+        return
+    terminal.set("tile 0x67: graphics\\goblin.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x40: graphics\\spiderqueen.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x2e: graphics\\floor2.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x23: graphics\\wall2.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x73: graphics\\spiderling.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x30: graphics\\egg.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
+
+
+def set_sprite_font():
+    if not graphical_tiles:
+        return
+    terminal.font("tile")
+
+
+def reset_font():
+    if not graphical_tiles:
+        return
+    terminal.font("")
+
+
 if __name__ == '__main__':
+    graphical_tiles = True
     top_gui_height = 5
     right_gui_width = 20
     game_area_width = 80
@@ -515,17 +545,18 @@ if __name__ == '__main__':
     screen_width = 100
     screen_height = 50
     player = SpiderQueen(1, 1)
-    level = Level(20, 20)
-    level.add_actor(player)
-    level.add_actor(Goblin(10, 10))
-    level.add_actor(Goblin(15, 15))
+    first_level = Level(20, 20)
+    first_level.add_actor(player)
+    first_level.add_actor(Goblin(10, 10))
+    first_level.add_actor(Goblin(15, 15))
     camera = Camera(player)
     messages = []
     running = terminal.open()
-    terminal.set("window: size=%sx%s, title=Lair of the Spider Queen RL;" % (screen_width, screen_height))
+    terminal.set("window: size=%sx%s, title=Lair of the Spider Queen RL, cellsize=8x16" % (screen_width, screen_height))
+    set_sprites()
     getting_dir = False
-    turn = 0
+    game_turn = 0
     while running:
-        turn += 1
-        game_loop(level, turn)
+        game_turn += 1
+        game_loop(first_level, game_turn)
     terminal.close()
