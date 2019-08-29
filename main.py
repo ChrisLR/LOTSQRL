@@ -210,11 +210,13 @@ class Spiderling(Actor):
 class SpiderQueen(Actor):
     egg_delay = 11
     jump_delay = 6
+    web_delay = 20
 
     def __init__(self, x, y):
         super().__init__(10, "@", "You", x, y, team=Team.QueenSpider)
         self.egg_cool_down = 0
         self.jump_cool_down = 0
+        self.web_cooldown = 0
         self.is_player = True
         self.corpse_eaten = 0
         self.kills = 0
@@ -240,12 +242,16 @@ class SpiderQueen(Actor):
             self.moved = self.jump()
         elif press == terminal.TK_KP_5:
             self.moved = True
+        elif press == terminal.TK_F:
+            self.moved = self.fire_web()
 
         if self.moved:
             if self.egg_cool_down > 0:
                 self.egg_cool_down -= 1
             if self.jump_cool_down > 0:
                 self.jump_cool_down -= 1
+            if self.web_cooldown > 0:
+                self.web_cooldown -= 1
 
     def bump(self, target):
         return self.bite(target)
@@ -266,6 +272,65 @@ class SpiderQueen(Actor):
         self.corpse_eaten += 1
 
         return True
+
+    def fire_web(self):
+        if self.web_cooldown > 0:
+            messages.append("You need to wait %s more rounds to fire web." % self.web_cooldown)
+            return False
+
+        messages.append("Press direction to fire web")
+        update_messages()
+        terminal.refresh()
+        offset = get_directional_pos()
+        if offset is None:
+            messages.append("Cancelled")
+            return False
+
+        for i in range(10):
+            web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
+            actors = self.level.get_actors(web_x, web_y)
+            if actors:
+                goblin = next((actor for actor in actors if actor.team == Team.Goblin and not actor.dead), None)
+                if goblin is None:
+                    continue
+                messages.append("You web latches on %s!" % goblin.name)
+                messages.append("Press direction to fling %s" % goblin.name)
+                update_messages()
+                terminal.refresh()
+                offset = get_directional_pos()
+                if offset is None:
+                    messages.append("You snap your web with your fangs")
+                    return True
+                for wf in range(5):
+                    gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
+                    actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
+                    if actors:
+                        actor = actors[0]
+                        if actor == self:
+                            messages.append("You catch %s and start spinning a cocoon!" % goblin.name)
+                            # TODO Create Cocoon Here
+                            return True
+                        messages.append("%s smashes against %s!" % (goblin.name, actor.name))
+                        goblin.hp -= random.randint(1, 4)
+                        actor.hp -= random.randint(1, 4)
+                        if goblin.hp < 0:
+                            goblin.on_death()
+                        if actor.hp < 0:
+                            actor.on_death()
+                    else:
+                        tile = self.level.get_tile(gx, gy)
+                        if tile == "#":
+                            messages.append("%s smashes against the wall!" % goblin.name)
+                            goblin.hp -= random.randint(4, 8)
+                            if goblin.hp < 0:
+                                goblin.on_death()
+
+                self.web_cooldown = 20
+                return True
+        else:
+            messages.append("There is no one to web there.")
+
+        return False
 
     def lay_egg(self):
         if self.egg_cool_down > 0:
