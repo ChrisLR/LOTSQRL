@@ -208,6 +208,7 @@ class Spiderling(Actor):
             messages.append("%s burrows into %s!" % (self.name, target.name))
             target.burrowed = True
             self.level.remove_actor(self)
+            return True
 
         if target is self.target or target.team == Team.Goblin:
             if target.dead:
@@ -566,7 +567,11 @@ def move_northwest(actor):
 
 
 def move_to(actor, x, y, bump=True):
-    if actor.level.get_tile(x, y) == ".":
+    level = actor.level
+    if not level:
+        return
+
+    if level.get_tile(x, y) == ".":
         collides = actor.level.get_actors(x, y)
         collision = next((collide for collide in collides if collide is not actor and collide.blocking), None)
         if collision is not None and bump is True:
@@ -585,10 +590,18 @@ def get_closest_actor(origin, actors):
 
 def step_to_target(actor, target):
     target_dx, target_dy = get_actor_delta(actor, target)
-    tx = actor.x + sign(target_dx)
-    ty = actor.y + sign(target_dy)
+    sx = sign(target_dx)
+    sy = sign(target_dy)
+    tx = actor.x + sx
+    ty = actor.y + sy
 
-    return move_to(actor, tx, ty)
+    result = move_to(actor, tx, ty)
+    if result:
+        return result
+
+    fx, fy = avoid_obstacle(actor, target, sx, sy)
+
+    return move_to(actor, actor.x + fx, actor.y + fy)
 
 
 def get_actor_delta(actor, target):
@@ -695,6 +708,17 @@ def get_directional_pos():
 
         if press == terminal.TK_ESCAPE:
             return
+
+
+def avoid_obstacle(actor, target, offset_x, offset_y):
+    if abs(target.x - actor.x) > abs(target.y - actor.y):
+        if offset_y == 0:
+            return offset_x, random.choice([-1, 1])
+        else:
+            return offset_x, offset_y * -1
+    if offset_x == 0:
+        return random.choice([-1, 1]), offset_y
+    return offset_x * -1, offset_y
 
 
 def draw_top_gui(player, turn):
