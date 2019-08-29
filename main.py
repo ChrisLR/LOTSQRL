@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from enum import IntEnum
 
 from bearlibterminal import terminal
@@ -59,6 +60,7 @@ class Actor(GameObject):
     def __init__(self, hp, display_char="", name="", x=0, y=0, team=None):
         super().__init__(display_char, name, x, y, team=team)
         self.hp = hp
+        self.max_hp = hp
         self.dead = False
         self.display_priority = 9
 
@@ -173,6 +175,7 @@ class Spiderling(Actor):
         super().__init__(4, "s", "Spiderling", x, y, team=Team.QueenSpider)
         self.target = None
         self.display_priority = 8
+        self.max_hp = 8
 
     def act(self):
         if self.dead:
@@ -225,7 +228,8 @@ class Spiderling(Actor):
         messages.append("%s eats %s !" % (self.name, target.name))
         self.level.remove_actor(target)
         self.target = None
-        self.hp += 5
+        if self.hp + 5 <= self.max_hp:
+            self.hp += 5
 
         return True
 
@@ -235,6 +239,7 @@ class Spider(Actor):
         super().__init__(10, "S", "Spider", x, y, team=Team.QueenSpider)
         self.target = None
         self.display_priority = 8
+        self.max_hp = 20
 
     def act(self):
         if self.dead:
@@ -282,7 +287,8 @@ class Spider(Actor):
         messages.append("%s eats %s !" % (self.name, target.name))
         self.level.remove_actor(target)
         self.target = None
-        self.hp += 5
+        if self.hp + 5 <= self.max_hp:
+            self.hp += 5
 
         return True
 
@@ -304,6 +310,7 @@ class SpiderQueen(Actor):
         self.enemies_crushed = 0
         self.moved = False
         self.display_priority = 1
+        self.max_hp = 40
 
     def act(self):
         if self.dead:
@@ -348,6 +355,8 @@ class SpiderQueen(Actor):
 
     def eat(self, target):
         messages.append("You eat %s !" % target.name)
+        if self.hp + 5 <= self.max_hp:
+            self.hp += 5
         self.level.remove_actor(target)
         self.corpse_eaten += 1
 
@@ -626,11 +635,12 @@ def game_loop(level):
         if game_turn % 10 == 0:
             spawn_goblins(level, game_turn)
 
-        if player.dead:
-            continue
+        if not player.dead:
+            player.act()
+        else:
+            time.sleep(0.5)
 
-        player.act()
-        if player.moved:
+        if player.moved or player.dead:
             game_turn += 1
             player.moved = False
 
@@ -690,6 +700,9 @@ def draw_top_gui(player, turn):
     terminal.printf(30, 2, "Eggs Laid:%s" % player.eggs_laid)
     terminal.printf(30, 3, "Crushed:%s" % player.enemies_crushed)
 
+    if player.dead:
+        terminal.printf(45, 4, "[color=red]You are dead![/color]")
+
 
 def set_sprites():
     if not graphical_tiles:
@@ -738,5 +751,4 @@ if __name__ == '__main__':
     set_sprites()
     getting_dir = False
     game_loop(first_level)
-
     terminal.close()
