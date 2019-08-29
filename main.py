@@ -150,9 +150,89 @@ class Egg(Actor):
             self.level.remove_actor(self)
 
 
+class Cocoon(Actor):
+    def __init__(self, x, y):
+        super().__init__(1, "(", "Cocoon", x, y, team=Team.QueenSpider)
+        self.hatch_countdown = 20
+        self.display_priority = 9
+        self.burrowed = False
+
+    def act(self):
+        if self.dead:
+            return
+
+        if self.burrowed is True:
+            self.hatch_countdown -= 1
+            if self.hatch_countdown <= 0:
+                self.level.add_actor(Spider(self.x, self.y))
+                self.level.remove_actor(self)
+
+
 class Spiderling(Actor):
     def __init__(self, x, y):
         super().__init__(4, "s", "Spiderling", x, y, team=Team.QueenSpider)
+        self.target = None
+        self.display_priority = 8
+
+    def act(self):
+        if self.dead:
+            return
+
+        if self.target is None or self.target.level is None:
+            targets = [actor for actor in self.level.actors if actor.team == Team.Goblin or isinstance(actor, Cocoon)]
+            if not targets:
+                spider = next(actor for actor in self.level.actors if actor.is_player)
+                return step_to_target(self, spider)
+            target = get_closest_actor(self, targets)
+            if target.dead:
+                dist = get_distance(self, target)
+                if dist <= 1:
+                    return self.eat(target)
+                else:
+                    return step_to_target(self, target)
+            return step_to_target(self, target)
+        else:
+            dist = get_distance(self, self.target)
+            if dist <= 1:
+                return self.eat(self.target)
+            else:
+                return step_to_target(self, self.target)
+
+    def bump(self, target):
+        if isinstance(target, Cocoon):
+            messages.append("%s burrows into %s!" % (self.name, target.name))
+            target.burrowed = True
+            self.level.remove_actor(self)
+
+        if target is self.target or target.team == Team.Goblin:
+            if target.dead:
+                return self.eat(target)
+            else:
+                return self.bite(target)
+
+        return False
+
+    def bite(self, target):
+        messages.append("%s bites %s!" % (self.name, target.name))
+        damage = random.randint(1, 4)
+        target.hp -= damage
+        if target.hp <= 0:
+            target.on_death()
+
+        return True
+
+    def eat(self, target):
+        messages.append("%s eats %s !" % (self.name, target.name))
+        self.level.remove_actor(target)
+        self.target = None
+        self.hp += 5
+
+        return True
+
+
+class Spider(Actor):
+    def __init__(self, x, y):
+        super().__init__(10, "S", "Spider", x, y, team=Team.QueenSpider)
         self.target = None
         self.display_priority = 8
 
@@ -191,7 +271,7 @@ class Spiderling(Actor):
 
     def bite(self, target):
         messages.append("%s bites %s!" % (self.name, target.name))
-        damage = random.randint(1, 4)
+        damage = random.randint(2, 8)
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
@@ -213,7 +293,7 @@ class SpiderQueen(Actor):
     web_delay = 20
 
     def __init__(self, x, y):
-        super().__init__(10, "@", "You", x, y, team=Team.QueenSpider)
+        super().__init__(20, "@", "You", x, y, team=Team.QueenSpider)
         self.egg_cool_down = 0
         self.jump_cool_down = 0
         self.web_cooldown = 0
@@ -301,22 +381,28 @@ class SpiderQueen(Actor):
                 if offset is None:
                     messages.append("You snap your web with your fangs")
                     return True
-                for wf in range(5):
+                for wf in range(1, 5):
                     gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
                     actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
                         if actor == self:
                             messages.append("You catch %s and start spinning a cocoon!" % goblin.name)
-                            # TODO Create Cocoon Here
+                            self.level.remove_actor(goblin)
+                            new_cocoon = Cocoon(gx - offset[0], gy - offset[1])
+                            self.level.add_actor(new_cocoon)
+
                             return True
                         messages.append("%s smashes against %s!" % (goblin.name, actor.name))
+                        goblin.x = gx
+                        goblin.y = gy
                         goblin.hp -= random.randint(1, 4)
                         actor.hp -= random.randint(1, 4)
                         if goblin.hp < 0:
                             goblin.on_death()
                         if actor.hp < 0:
                             actor.on_death()
+                        break
                     else:
                         tile = self.level.get_tile(gx, gy)
                         if tile == "#":
@@ -324,6 +410,13 @@ class SpiderQueen(Actor):
                             goblin.hp -= random.randint(4, 8)
                             if goblin.hp < 0:
                                 goblin.on_death()
+                            goblin.x = gx - offset[0]
+                            goblin.y = gy - offset[1]
+                            break
+                else:
+                    goblin.x = gx
+                    goblin.y = gy
+
 
                 self.web_cooldown = 20
                 return True
@@ -534,7 +627,7 @@ def game_loop(level):
             spawn_goblins(level, game_turn)
 
         if player.dead:
-            return
+            continue
 
         player.act()
         if player.moved:
@@ -608,6 +701,8 @@ def set_sprites():
     terminal.set("tile 0x73: graphics\\spiderling.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x30: graphics\\egg.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
 
 
 def set_sprite_font():
