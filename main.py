@@ -232,6 +232,8 @@ class Spiderling(Actor):
         self.target = None
         if self.hp + 5 <= self.max_hp:
             self.hp += 5
+        else:
+            self.hp = self.max_hp
 
         return True
 
@@ -291,6 +293,8 @@ class Spider(Actor):
         self.target = None
         if self.hp + 5 <= self.max_hp:
             self.hp += 5
+        else:
+            self.hp = self.max_hp
 
         return True
 
@@ -359,6 +363,8 @@ class SpiderQueen(Actor):
         messages.append("You eat %s !" % target.name)
         if self.hp + 5 <= self.max_hp:
             self.hp += 5
+        else:
+            self.hp = self.max_hp
         self.level.remove_actor(target)
         self.corpse_eaten += 1
 
@@ -393,6 +399,7 @@ class SpiderQueen(Actor):
                     messages.append("You snap your web with your fangs")
                     self.web_cooldown = 20
                     return True
+                messages.append("You fling %s in the air!" % goblin.name)
                 for wf in range(1, 5):
                     gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
                     actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
@@ -668,7 +675,10 @@ def spawn_goblins(level, turn):
 
 
 def update_messages():
-    terminal.printf(0, top_gui_height + game_area_height + 2, "-" * screen_width)
+    top_border = top_gui_height + game_area_height + 2
+    bottom_border = screen_height - top_border
+    terminal.clear_area(0, top_border, screen_width, bottom_border)
+    terminal.printf(0, top_border, "-" * screen_width)
     terminal.printf(0, screen_height - 1, "-" * screen_width)
     y_offset = top_gui_height + game_area_height + 3
     for i, message in enumerate(messages[-message_log_height::]):
