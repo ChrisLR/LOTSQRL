@@ -36,6 +36,8 @@ class Camera(object):
             dx = (actor.x * 2) - ox
             dy = actor.y - oy
 
+            if actor.x > max_x or actor.y > max_y or actor.x < ox or actor.y < oy:
+                continue
             terminal.put(dx, dy + draw_offset_y, actor.display_char)
         reset_font()
 
