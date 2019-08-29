@@ -182,7 +182,9 @@ class Spiderling(Actor):
             return
 
         if self.target is None or self.target.level is None:
-            targets = [actor for actor in self.level.actors if actor.team == Team.Goblin or isinstance(actor, Cocoon)]
+            targets = [actor for actor in self.level.actors
+                       if actor.team == Team.Goblin
+                       or (isinstance(actor, Cocoon) and not actor.burrowed)]
             if not targets:
                 spider = next(actor for actor in self.level.actors if actor.is_player)
                 return step_to_target(self, spider)
@@ -389,6 +391,7 @@ class SpiderQueen(Actor):
                 offset = get_directional_pos()
                 if offset is None:
                     messages.append("You snap your web with your fangs")
+                    self.web_cooldown = 20
                     return True
                 for wf in range(1, 5):
                     gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
@@ -400,7 +403,7 @@ class SpiderQueen(Actor):
                             self.level.remove_actor(goblin)
                             new_cocoon = Cocoon(gx - offset[0], gy - offset[1])
                             self.level.add_actor(new_cocoon)
-
+                            self.web_cooldown = 20
                             return True
                         messages.append("%s smashes against %s!" % (goblin.name, actor.name))
                         goblin.x = gx
@@ -425,7 +428,6 @@ class SpiderQueen(Actor):
                 else:
                     goblin.x = gx
                     goblin.y = gy
-
 
                 self.web_cooldown = 20
                 return True
@@ -641,13 +643,14 @@ def game_loop(level):
             time.sleep(0.5)
 
         if player.moved or player.dead:
-            game_turn += 1
-            player.moved = False
-
             for actor in level.actors.copy():
                 if actor is player:
                     continue
                 actor.act()
+
+        if player.moved:
+            game_turn += 1
+            player.moved = False
 
         terminal.clear()
         draw_top_gui(player, game_turn)
@@ -695,6 +698,7 @@ def draw_top_gui(player, turn):
     terminal.printf(11, 1, "Cooldowns")
     terminal.printf(11, 2, "Egg:%s" % player.egg_cool_down)
     terminal.printf(11, 3, "Jump:%s" % player.jump_cool_down)
+    terminal.printf(11, 4, "Web:%s" % player.web_cooldown)
 
     terminal.printf(30, 1, "Kills:%s" % player.kills)
     terminal.printf(30, 2, "Eggs Laid:%s" % player.eggs_laid)
