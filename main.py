@@ -122,7 +122,7 @@ class Goblin(Actor):
                 return step_to_target(self, closest_spider)
 
     def bump(self, target):
-        self.stab(target)
+        return self.stab(target)
 
     def stab(self, target):
         messages.append(self.name + " stabs %s!" % target.name)
@@ -130,6 +130,8 @@ class Goblin(Actor):
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
+
+        return True
 
 
 class Egg(Actor):
@@ -181,9 +183,11 @@ class Spiderling(Actor):
     def bump(self, target):
         if target is self.target or target.team == Team.Goblin:
             if target.dead:
-                self.eat(target)
+                return self.eat(target)
             else:
-                self.bite(target)
+                return self.bite(target)
+
+        return False
 
     def bite(self, target):
         messages.append("%s bites %s!" % (self.name, target.name))
@@ -192,18 +196,25 @@ class Spiderling(Actor):
         if target.hp <= 0:
             target.on_death()
 
+        return True
+
     def eat(self, target):
         messages.append("%s eats %s !" % (self.name, target.name))
         self.level.remove_actor(target)
         self.target = None
         self.hp += 5
 
+        return True
+
 
 class SpiderQueen(Actor):
+    egg_delay = 11
+    jump_delay = 6
+
     def __init__(self, x, y):
         super().__init__(10, "@", "You", x, y, team=Team.QueenSpider)
-        self.egg_warm_up = 10
-        self.jump_warm_up = 5
+        self.egg_cool_down = 0
+        self.jump_cool_down = 0
         self.is_player = True
         self.corpse_eaten = 0
         self.kills = 0
@@ -216,32 +227,28 @@ class SpiderQueen(Actor):
         if self.dead:
             return
 
-        if self.egg_warm_up < 10:
-            self.egg_warm_up += 1
-        if self.jump_warm_up < 5:
-            self.jump_warm_up += 1
-
         press = terminal.read()
         move_action = move_actions.get(press)
         if move_action is not None:
-            self.moved = True
-            move_action(player)
+            self.moved = move_action(player)
 
         if press == terminal.TK_E:
-            self.moved = True
-            return self.try_eat()
+            self.moved = self.try_eat()
         elif press == terminal.TK_L:
-            self.moved = True
-            return self.lay_egg()
+            self.moved = self.lay_egg()
         elif press == terminal.TK_J:
-            self.moved = True
-            return self.jump()
+            self.moved = self.jump()
         elif press == terminal.TK_KP_5:
             self.moved = True
-            return
+
+        if self.moved:
+            if self.egg_cool_down > 0:
+                self.egg_cool_down -= 1
+            if self.jump_cool_down > 0:
+                self.jump_cool_down -= 1
 
     def bump(self, target):
-        self.bite(target)
+        return self.bite(target)
 
     def bite(self, target):
         messages.append("You bite %s" % target.name)
@@ -251,27 +258,32 @@ class SpiderQueen(Actor):
             target.on_death()
             self.kills += 1
 
+        return True
+
     def eat(self, target):
         messages.append("You eat %s !" % target.name)
         self.level.remove_actor(target)
-        self.hp += 5
         self.corpse_eaten += 1
 
+        return True
+
     def lay_egg(self):
-        if self.egg_warm_up < 10:
-            messages.append("You need to wait %s more rounds to lay." % (10 - self.egg_warm_up))
-            return
+        if self.egg_cool_down > 0:
+            messages.append("You need to wait %s more rounds to lay." % self.egg_cool_down)
+            return False
 
         messages.append("You lay an egg.")
         new_egg = Egg(self.x, self.y)
         self.level.add_actor(new_egg)
-        self.egg_warm_up = 0
+        self.egg_cool_down = self.egg_delay
         self.eggs_laid += 1
 
+        return True
+
     def jump(self):
-        if self.jump_warm_up < 5:
-            messages.append("You need to wait %s more rounds to jump." % (5 - self.jump_warm_up))
-            return
+        if self.jump_cool_down > 0:
+            messages.append("You need to wait %s more rounds to jump." % self.jump_cool_down)
+            return False
 
         messages.append("Press direction to jump")
         update_messages()
@@ -279,7 +291,7 @@ class SpiderQueen(Actor):
         offset = get_directional_pos()
         if offset is None:
             messages.append("Cancelled")
-            return
+            return False
 
         ox, oy = offset
         if ox != 0:
@@ -290,8 +302,10 @@ class SpiderQueen(Actor):
         jumped = self.jump_to(self.x + ox, self.y + oy)
         if jumped is False:
             messages.append("Can't jump there, a wall in the way.")
+            return False
         else:
-            self.jump_warm_up = 0
+            self.jump_cool_down = self.jump_delay
+            return True
 
     def try_eat(self):
         messages.append("Press direction to eat corpse")
@@ -300,14 +314,15 @@ class SpiderQueen(Actor):
         offset = get_directional_pos()
         if offset is None:
             messages.append("Cancelled")
-            return
+            return False
 
         tx, ty = self.x + offset[0], self.y + offset[1]
-        target = self.get_eatable_target(self.level.get_actors(tx, ty))
+        target = self.get_edible_target(self.level.get_actors(tx, ty))
         if target is not None:
             return self.eat(target)
+        return False
 
-    def get_eatable_target(self, targets):
+    def get_edible_target(self, targets):
         corpse = next((target for target in targets if target.dead), None)
         if corpse:
             return corpse
@@ -379,10 +394,11 @@ def move_to(actor, x, y, bump=True):
         collides = actor.level.get_actors(x, y)
         collision = next((collide for collide in collides if collide is not actor and collide.blocking), None)
         if collision is not None and bump is True:
-            actor.bump(collision)
+            return actor.bump(collision)
         else:
             actor.x = x
             actor.y = y
+            return True
     else:
         return False
 
@@ -446,26 +462,30 @@ direction_offsets = {
 }
 
 
-def game_loop(level, turn):
-    if turn % 10 == 0:
-        spawn_goblins(level, turn)
+def game_loop(level):
+    game_turn = 1
+    while running:
+        if game_turn % 10 == 0:
+            spawn_goblins(level, game_turn)
 
-    if player.dead:
-        return
+        if player.dead:
+            return
 
-    player.act()
-    if player.moved:
-        player.moved = False
-        for actor in level.actors.copy():
-            if actor is player:
-                continue
-            actor.act()
+        player.act()
+        if player.moved:
+            game_turn += 1
+            player.moved = False
 
-    terminal.clear()
-    camera.draw()
-    update_messages()
-    draw_top_gui(player, turn)
-    terminal.refresh()
+            for actor in level.actors.copy():
+                if actor is player:
+                    continue
+                actor.act()
+
+        terminal.clear()
+        draw_top_gui(player, game_turn)
+        camera.draw()
+        update_messages()
+        terminal.refresh()
 
 
 def spawn_goblins(level, turn):
@@ -505,8 +525,8 @@ def draw_top_gui(player, turn):
     terminal.printf(2, 1, "Hp:%s" % player.hp)
     terminal.printf(2, 2, "Turn:%s" % turn)
     terminal.printf(11, 1, "Cooldowns")
-    terminal.printf(11, 2, "Egg:%s" % (10 - player.egg_warm_up))
-    terminal.printf(11, 3, "Jump:%s" % (5 - player.jump_warm_up))
+    terminal.printf(11, 2, "Egg:%s" % player.egg_cool_down)
+    terminal.printf(11, 3, "Jump:%s" % player.jump_cool_down)
 
     terminal.printf(30, 1, "Kills:%s" % player.kills)
     terminal.printf(30, 2, "Eggs Laid:%s" % player.eggs_laid)
@@ -557,8 +577,6 @@ if __name__ == '__main__':
     terminal.set("window: size=%sx%s, title=Lair of the Spider Queen RL, cellsize=8x16" % (screen_width, screen_height))
     set_sprites()
     getting_dir = False
-    game_turn = 0
-    while running:
-        game_turn += 1
-        game_loop(first_level, game_turn)
+    game_loop(first_level)
+
     terminal.close()
