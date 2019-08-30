@@ -28,7 +28,7 @@ class Camera(object):
             dy = y - oy
             for x, tile in enumerate(row_tiles):
                 dx = (x * 2) - ox
-                if x > max_x or y > max_y or x < ox or y < oy:
+                if x * 2 > max_x or y > max_y or x * 2 < ox or y < oy:
                     continue
                 terminal.put(dx, dy + draw_offset_y, tile)
 
@@ -779,8 +779,10 @@ def set_sprites():
     terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, resize=8x16, spacing=2x1")
-    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, resize=8x16, spacing=2x1")
+    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x2f: graphics\\webdiagonal2.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x5c: graphics\\webdiagonal.png, size=16x16, spacing=2x1")
 
 
 def set_sprite_font():
@@ -795,6 +797,59 @@ def reset_font():
     terminal.font("")
 
 
+def count_alive_neighbours(map, x, y):
+    count = 0
+    for i in range(-1, 2):
+        for j in range(-1, 2):
+            neighbour_x = x + i
+            neighbour_y = y + j
+            if i == 0 and j == 0:
+                pass
+            elif neighbour_x < 0 or neighbour_y < 0 or neighbour_x >= len(map) or neighbour_y >= len(map[0]):
+                count = count + 1
+            elif map[neighbour_x][neighbour_y] == "#":
+                count = count + 1
+
+    return count
+
+
+def do_simulation_step(old_map, width, height, birth_limit, death_limit):
+    new_map = [["." for _ in range(width)] for _ in range(height)]
+    # TODO X and Y might be inverted
+    for x in range(len(old_map)):
+        for y in range(len(old_map[x])):
+            nbs = count_alive_neighbours(old_map, x, y)
+            if old_map[x][y] == "#":
+                if nbs < death_limit:
+                    new_map[x][y] = "."
+                else:
+                    new_map[x][y] = "#"
+            else:
+                if nbs > birth_limit:
+                    new_map[x][y] = "#"
+                else:
+                    new_map[x][y] = "."
+
+    return new_map
+
+
+def rando_alive(chance):
+    if random.randint(0, 100) <= chance:
+        return "#"
+    return "."
+
+
+def generate_map(width, height, number_of_steps):
+    cellmap = [[rando_alive(25) for _ in range(width)] for _ in range(height)]
+    for _ in range(number_of_steps):
+        cellmap = do_simulation_step(cellmap, width, height, 3, 3)
+
+    new_level = Level(width, height)
+    new_level.tiles = cellmap
+
+    return new_level
+
+
 if __name__ == '__main__':
     graphical_tiles = True
     top_gui_height = 5
@@ -805,7 +860,8 @@ if __name__ == '__main__':
     screen_width = 100
     screen_height = 50
     player = SpiderQueen(1, 1)
-    first_level = Level(20, 20)
+    #first_level = Level(20, 20)
+    first_level = generate_map(25, 25, 2)
     first_level.add_actor(player)
     first_level.add_actor(Goblin(10, 10))
     first_level.add_actor(Goblin(15, 15))
