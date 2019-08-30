@@ -90,6 +90,7 @@ class Level(object):
         self.height = height
         self.actors = []
         self.tiles = [["." for _ in range(width)] for _ in range(height)]
+        self.spawns = []
         for i in range(width):
             self.tiles[0][i] = "#"
             self.tiles[height - 1][i] = "#"
@@ -161,7 +162,7 @@ class Egg(Actor):
 class Cocoon(Actor):
     def __init__(self, x, y):
         super().__init__(1, "(", "Cocoon", x, y, team=Team.QueenSpider)
-        self.hatch_countdown = 20
+        self.hatch_countdown = 10
         self.display_priority = 9
         self.burrowed = False
 
@@ -711,9 +712,6 @@ direction_offsets_char = {
 def game_loop(level):
     game_turn = 1
     while running:
-        if game_turn % 10 == 0:
-            spawn_goblins(level, game_turn)
-
         if not player.dead:
             player.act()
         else:
@@ -725,9 +723,13 @@ def game_loop(level):
                     continue
                 actor.act()
 
+        if game_turn % 10 == 0:
+            spawn_goblins(level, game_turn)
+
         if player.moved:
             game_turn += 1
             player.moved = False
+
 
         terminal.clear()
         draw_top_gui(player, game_turn)
@@ -737,10 +739,10 @@ def game_loop(level):
 
 
 def spawn_goblins(level, turn):
-    amount = random.randint(1, min(int(math.ceil(turn / 10)), level.width - 2))
+    spawn_points = level.spawns
+    amount = random.randint(1, min(int(math.ceil(turn / 10)), 12))
     for _ in range(amount):
-        x = random.randint(1, level.width - 1)
-        y = level.height - 1
+        x, y = random.choice(spawn_points)
         level.add_actor(Goblin(x, y))
 
 
@@ -823,6 +825,30 @@ def set_sprite_font():
     terminal.font("tile")
 
 
+def seek_spawn_points(map_cells):
+    possible_coordinates = []
+    top_row = map_cells[0]
+    for x, tile in enumerate(top_row):
+        if tile == ".":
+            possible_coordinates.append((x, 0))
+
+    bottom_row = map_cells[-1]
+    for x, tile in enumerate(bottom_row):
+        if tile == ".":
+            possible_coordinates.append((x, len(bottom_row) - 1))
+
+    for y, row in enumerate(map_cells):
+        left_tile = row[0]
+        if left_tile == ".":
+            possible_coordinates.append((0, y))
+
+        right_tile = row[-1]
+        if right_tile == ".":
+            possible_coordinates.append((len(row) - 1, y))
+
+    return possible_coordinates
+
+
 def reset_font():
     if not graphical_tiles:
         return
@@ -871,15 +897,41 @@ def rando_alive(chance):
 
 
 def generate_map(width, height, number_of_steps):
-    cellmap = [[rando_alive(25) for _ in range(width)] for _ in range(height)]
-    for _ in range(number_of_steps):
-        cellmap = do_simulation_step(cellmap, width, height, 4, 3)
-
+    tries = 10
     new_level = Level(width, height)
-    new_level.tiles = cellmap
+    while tries:
+        map_cells = generate_map_cells(width, height, number_of_steps)
+        spawns = seek_spawn_points(map_cells)
+        if len(spawns) >= 6:
+            new_level.tiles = map_cells
+            new_level.spawns = spawns
+            return new_level
+        tries -= 1
 
-    return new_level
+    raise ValueError("Map could not generate with enough spawn points QQ")
 
+
+def generate_map_cells(width, height, number_of_steps):
+    map_cells = [[rando_alive(30) for _ in range(width)] for _ in range(height)]
+    for _ in range(number_of_steps):
+        map_cells = do_simulation_step(map_cells, width, height, 4, 3)
+
+    return map_cells
+
+
+def select_player_spawn(level):
+    middle_x, middle_y = int(level.width / 2), int(level.height / 2)
+    if level.get_tile(middle_x, middle_y) == ".":
+        return middle_x, middle_y
+    tries = 20
+    while tries:
+        middle_x += random.randint(-10, 10)
+        middle_y += random.randint(-10, 10)
+        if level.get_tile(middle_x, middle_y) == ".":
+            return middle_x, middle_y
+        tries -= 1
+
+    raise ValueError("Could not find player spawn QQ")
 
 if __name__ == '__main__':
     graphical_tiles = True
@@ -890,9 +942,11 @@ if __name__ == '__main__':
     message_log_height = 11
     screen_width = 100
     screen_height = 50
-    player = SpiderQueen(1, 1)
     #first_level = Level(20, 20)
-    first_level = generate_map(25, 25, 2)
+    first_level = generate_map(25, 25, 4)
+    player_spawn = select_player_spawn(first_level)
+    player = SpiderQueen(*player_spawn)
+
     first_level.add_actor(player)
     first_level.add_actor(Goblin(10, 10))
     first_level.add_actor(Goblin(15, 15))
