@@ -847,7 +847,6 @@ def count_alive_neighbours(map, x, y):
 
 def do_simulation_step(old_map, width, height, birth_limit, death_limit):
     new_map = [["." for _ in range(width)] for _ in range(height)]
-    # TODO X and Y might be inverted
     for x in range(len(old_map)):
         for y in range(len(old_map[x])):
             nbs = count_alive_neighbours(old_map, x, y)
@@ -874,7 +873,7 @@ def rando_alive(chance):
 def generate_map(width, height, number_of_steps):
     cellmap = [[rando_alive(25) for _ in range(width)] for _ in range(height)]
     for _ in range(number_of_steps):
-        cellmap = do_simulation_step(cellmap, width, height, 3, 3)
+        cellmap = do_simulation_step(cellmap, width, height, 4, 3)
 
     new_level = Level(width, height)
     new_level.tiles = cellmap
