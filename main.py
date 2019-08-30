@@ -389,9 +389,44 @@ class SpiderQueen(Actor):
         if offset is None:
             messages.append("Cancelled")
             return False
+        self.web_cooldown = 20
 
         for i in range(10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
+            if self.level.get_tile(web_x, web_y) == "#":
+                messages.append("Your web hits a wall, press a key to fling yourself.")
+                update_messages()
+                terminal.refresh()
+                offset = get_directional_pos()
+                if offset is None:
+                    messages.append("You snap your web with your fangs")
+                    return True
+                for wf in range(1, 5):
+                    gx, gy = self.x + (offset[0] * wf), self.y + (offset[1] * wf)
+                    actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
+                    if actors:
+                        actor = actors[0]
+                        messages.append("You smash against %s!" % actor.name)
+                        self.x = gx - offset[0]
+                        self.y = gy - offset[1]
+                        self.hp -= random.randint(1, 4)
+                        actor.hp -= random.randint(2, 8)
+                        if self.hp < 0:
+                            self.on_death()
+                        if actor.hp < 0:
+                            actor.on_death()
+                        break
+                    else:
+                        tile = self.level.get_tile(gx, gy)
+                        if tile == "#":
+                            self.x = gx - offset[0]
+                            self.y = gy - offset[1]
+                            break
+                else:
+                    self.x = gx
+                    self.y = gy
+                return True
+
             web_char = direction_offsets_char.get(offset)
             terminal.layer(2)
             set_sprite_font()
@@ -412,7 +447,6 @@ class SpiderQueen(Actor):
                 offset = get_directional_pos()
                 if offset is None:
                     messages.append("You snap your web with your fangs")
-                    self.web_cooldown = 20
                     return True
                 messages.append("You fling %s in the air!" % goblin.name)
                 for wf in range(1, 5):
@@ -425,7 +459,6 @@ class SpiderQueen(Actor):
                             self.level.remove_actor(goblin)
                             new_cocoon = Cocoon(gx - offset[0], gy - offset[1])
                             self.level.add_actor(new_cocoon)
-                            self.web_cooldown = 20
                             return True
                         messages.append("%s smashes against %s!" % (goblin.name, actor.name))
                         goblin.x = gx
@@ -451,7 +484,6 @@ class SpiderQueen(Actor):
                     goblin.x = gx
                     goblin.y = gy
 
-                self.web_cooldown = 20
                 return True
         else:
             messages.append("There is no one to web there.")
