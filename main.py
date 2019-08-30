@@ -394,7 +394,9 @@ class SpiderQueen(Actor):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
             web_char = direction_offsets_char.get(offset)
             terminal.layer(2)
-            terminal.printf(*camera.transform(web_x, web_y), web_char)
+            set_sprite_font()
+            terminal.put(*camera.transform(web_x, web_y), web_char)
+            reset_font()
             terminal.layer(3)
             terminal.refresh()
             time.sleep(0.05)
@@ -777,8 +779,8 @@ def set_sprites():
     terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, resize=8x16, spacing=2x1")
+    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, resize=8x16, spacing=2x1")
 
 
 def set_sprite_font():
