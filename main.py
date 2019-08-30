@@ -23,7 +23,7 @@ class Camera(object):
         level = self.focus_on.level
 
         terminal.layer(1)
-        draw_offset_y = top_gui_height
+        draw_offset_y = top_gui_height + 1
         for y, row_tiles in enumerate(level.tiles):
             dy = y - oy
             for x, tile in enumerate(row_tiles):
@@ -933,6 +933,7 @@ def select_player_spawn(level):
 
     raise ValueError("Could not find player spawn QQ")
 
+
 if __name__ == '__main__':
     graphical_tiles = True
     top_gui_height = 5
@@ -942,14 +943,12 @@ if __name__ == '__main__':
     message_log_height = 11
     screen_width = 100
     screen_height = 50
-    #first_level = Level(20, 20)
+
     first_level = generate_map(25, 25, 4)
     player_spawn = select_player_spawn(first_level)
     player = SpiderQueen(*player_spawn)
 
     first_level.add_actor(player)
-    first_level.add_actor(Goblin(10, 10))
-    first_level.add_actor(Goblin(15, 15))
     camera = Camera(player)
     messages = []
     running = terminal.open()
