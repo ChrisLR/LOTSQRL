@@ -32,7 +32,7 @@ class Camera(object):
                     continue
                 terminal.put(dx, dy + draw_offset_y, tile)
 
-        terminal.layer(2)
+        terminal.layer(3)
         for actor in sorted(level.actors, key=lambda actor: actor.display_priority, reverse=True):
             dx = (actor.x * 2) - ox
             dy = actor.y - oy
@@ -41,6 +41,12 @@ class Camera(object):
                 continue
             terminal.put(dx, dy + draw_offset_y, actor.display_char)
         reset_font()
+
+    def transform(self, x, y):
+        draw_offset_y = top_gui_height
+        half_width, half_height = int(game_area_width / 2), int(game_area_height / 2)
+        ox, oy = (self.focus_on.x * 2) - half_width, self.focus_on.y - half_height
+        return (x * 2) - ox, (y - oy) + draw_offset_y
 
 
 class GameObject(object):
@@ -386,6 +392,12 @@ class SpiderQueen(Actor):
 
         for i in range(10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
+            web_char = direction_offsets_char.get(offset)
+            terminal.layer(2)
+            terminal.printf(*camera.transform(web_x, web_y), web_char)
+            terminal.layer(3)
+            terminal.refresh()
+            time.sleep(0.05)
             actors = self.level.get_actors(web_x, web_y)
             if actors:
                 goblin = next((actor for actor in actors if actor.team == Team.Goblin and not actor.dead), None)
@@ -650,6 +662,17 @@ direction_offsets = {
     terminal.TK_KP_7: (-1, -1)
 }
 
+direction_offsets_char = {
+    (0, -1): "|",
+    (1, -1): "/",
+    (1, 0): "-",
+    (1, 1): "\\",
+    (0, 1): "|",
+    (-1, 1): "/",
+    (-1, 0): "-",
+    (-1, -1): "\\"
+}
+
 
 def game_loop(level):
     game_turn = 1
@@ -754,6 +777,8 @@ def set_sprites():
     terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1;")
 
 
 def set_sprite_font():
