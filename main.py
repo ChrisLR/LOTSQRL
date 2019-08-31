@@ -43,7 +43,7 @@ class Camera(object):
         reset_font()
 
     def transform(self, x, y):
-        draw_offset_y = top_gui_height
+        draw_offset_y = top_gui_height + 1
         half_width, half_height = int(game_area_width / 2), int(game_area_height / 2)
         ox, oy = (self.focus_on.x * 2) - half_width, self.focus_on.y - half_height
         return (x * 2) - ox, (y - oy) + draw_offset_y
@@ -69,6 +69,7 @@ class Actor(GameObject):
         self.max_hp = hp
         self.dead = False
         self.display_priority = 9
+        self.stunned = 0
 
     def act(self):
         pass
@@ -123,6 +124,10 @@ class Goblin(Actor):
         self.display_priority = 8
 
     def act(self):
+        if self.stunned > 0:
+            self.stunned -= 1
+            return
+
         if not self.dead:
             spiders = [actor for actor in self.level.actors
                        if actor.team == Team.QueenSpider and not actor.dead]
@@ -131,11 +136,60 @@ class Goblin(Actor):
                 return step_to_target(self, closest_spider)
 
     def bump(self, target):
-        return self.stab(target)
+        if not isinstance(target, GoblinChief):
+            return self.stab(target)
+        return True
 
     def stab(self, target):
         messages.append(self.name + " stabs %s!" % target.name)
         damage = random.randint(1, 4)
+        target.hp -= damage
+        if target.hp <= 0:
+            target.on_death()
+
+        return True
+
+
+class GoblinChief(Actor):
+    def __init__(self, x, y):
+        super().__init__(50, "G", "Goblin Chief", x, y, team=Team.Goblin)
+        self.display_priority = 7
+        self.headbutt_cooldown = 0
+
+    def act(self):
+        if self.stunned > 0:
+            self.stunned -= 1
+            return
+
+        if self.headbutt_cooldown > 1:
+            self.headbutt_cooldown -= 1
+
+        if not self.dead:
+            spiders = [actor for actor in self.level.actors
+                       if actor.team == Team.QueenSpider and not actor.dead]
+            if spiders:
+                closest_spider = get_closest_actor(self, spiders)
+                return step_to_target(self, closest_spider)
+
+    def bump(self, target):
+        if self.headbutt_cooldown == 0:
+            return self.headbutt(target)
+        return self.slice(target)
+
+    def headbutt(self, target):
+        messages.append(self.name + " headbutts %s!" % target.name)
+        damage = random.randint(1, 8)
+        self.headbutt_cooldown = 20
+        target.hp -= damage
+        if target.hp <= 0:
+            target.on_death()
+        target.stunned = True
+
+        return True
+
+    def slice(self, target):
+        messages.append(self.name + " slices %s!" % target.name)
+        damage = random.randint(4, 12)
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
@@ -185,6 +239,10 @@ class Spiderling(Actor):
         self.max_hp = 8
 
     def act(self):
+        if self.stunned > 0:
+            self.stunned -= 1
+            return
+
         if self.dead:
             return
 
@@ -254,6 +312,10 @@ class Spider(Actor):
         self.max_hp = 20
 
     def act(self):
+        if self.stunned > 0:
+            self.stunned -= 1
+            return
+
         if self.dead:
             return
 
@@ -327,6 +389,11 @@ class SpiderQueen(Actor):
         self.max_hp = 40
 
     def act(self):
+        if self.stunned > 0:
+            self.stunned -= 1
+            self.moved = True
+            return
+
         if self.dead:
             return
 
@@ -408,6 +475,7 @@ class SpiderQueen(Actor):
                     if actors:
                         actor = actors[0]
                         messages.append("You smash against %s!" % actor.name)
+                        actor.stunned = 2
                         self.x = gx - offset[0]
                         self.y = gy - offset[1]
                         self.hp -= random.randint(1, 4)
@@ -455,13 +523,16 @@ class SpiderQueen(Actor):
                     actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
-                        if actor == self:
+                        if actor == self and goblin != goblin_chief:
                             messages.append("You catch %s and start spinning a cocoon!" % goblin.name)
+                            goblin.dead = True
                             self.level.remove_actor(goblin)
                             new_cocoon = Cocoon(gx - offset[0], gy - offset[1])
                             self.level.add_actor(new_cocoon)
                             return True
                         messages.append("%s smashes against %s!" % (goblin.name, actor.name))
+                        goblin.stunned = 1
+                        actor.stunned = 1
                         goblin.x = gx
                         goblin.y = gy
                         goblin.hp -= random.randint(1, 4)
@@ -475,6 +546,7 @@ class SpiderQueen(Actor):
                         tile = self.level.get_tile(gx, gy)
                         if tile == "#":
                             messages.append("%s smashes against the wall!" % goblin.name)
+                            goblin.stunned = 3
                             goblin.hp -= random.randint(4, 8)
                             if goblin.hp < 0:
                                 goblin.on_death()
@@ -570,7 +642,7 @@ class SpiderQueen(Actor):
                 for collision in collisions:
                     collision.hp -= random.randint(1, 3)
                     moved = move_to(collision, collision.x + dx, collision.y + dy, bump=False)
-                    if moved is False:
+                    if moved is False and collision is not goblin_chief:
                         messages.append("%s is crushed under you!" % collision.name)
                         collision.on_death()
                         self.enemies_crushed += 1
@@ -723,13 +795,13 @@ def game_loop(level):
                     continue
                 actor.act()
 
-        if game_turn % 10 == 0:
+        if game_turn % 10 == 0 and not goblin_chief.dead:
             spawn_goblins(level, game_turn)
 
         if player.moved:
-            game_turn += 1
             player.moved = False
-
+            if not goblin_chief.dead:
+                game_turn += 1
 
         terminal.clear()
         draw_top_gui(player, game_turn)
@@ -744,6 +816,12 @@ def spawn_goblins(level, turn):
     for _ in range(amount):
         x, y = random.choice(spawn_points)
         level.add_actor(Goblin(x, y))
+
+    if turn == 500 and goblin_chief.level is None:
+        x, y = random.choice(spawn_points)
+        goblin_chief.x = x
+        goblin_chief.y = y
+        level.add_actor(goblin_chief)
 
 
 def update_messages():
@@ -800,23 +878,28 @@ def draw_top_gui(player, turn):
     if player.dead:
         terminal.printf(45, 4, "[color=red]You are dead![/color]")
 
+    if goblin_chief.dead:
+        terminal.printf(45, 4, "[color=green]You won![/color]")
+
 
 def set_sprites():
     if not graphical_tiles:
         return
-    terminal.set("tile 0x67: graphics\\goblin.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x40: graphics\\spiderqueen.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x2e: graphics\\floor2.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x23: graphics\\wall2.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x73: graphics\\spiderling.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x30: graphics\\egg.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
+
     terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x30: graphics\\egg.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x67: graphics\\goblin.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x47: graphics\\goblin-chief.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x2e: graphics\\floor2.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
-    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1")
-    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x73: graphics\\spiderling.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x40: graphics\\spiderqueen.png, size=16x16, spacing=2x1;")
+    terminal.set("tile 0x23: graphics\\wall2.png, size=16x16, spacing=2x1;")
     terminal.set("tile 0x2f: graphics\\webdiagonal2.png, size=16x16, spacing=2x1")
     terminal.set("tile 0x5c: graphics\\webdiagonal.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1")
+    terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1")
 
 
 def set_sprite_font():
@@ -943,10 +1026,12 @@ if __name__ == '__main__':
     message_log_height = 11
     screen_width = 100
     screen_height = 50
+    game_won = False
 
     first_level = generate_map(25, 25, 4)
     player_spawn = select_player_spawn(first_level)
     player = SpiderQueen(*player_spawn)
+    goblin_chief = GoblinChief(0, 0)
 
     first_level.add_actor(player)
     camera = Camera(player)
