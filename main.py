@@ -1,6 +1,7 @@
 import math
 import random
 import time
+import sys
 from enum import IntEnum
 
 from bearlibterminal import terminal
@@ -414,7 +415,7 @@ class SpiderQueen(Actor):
         elif press == terminal.TK_F:
             self.moved = self.fire_web()
         elif press == terminal.TK_CLOSE:
-            exit()
+            sys.exit()
         elif press == terminal.TK_F1:
             draw_help_file()
 
@@ -796,7 +797,7 @@ def game_loop(level):
         else:
             if terminal.has_input():
                 if terminal.read() == terminal.TK_CLOSE:
-                    exit()
+                    sys.exit()
             time.sleep(0.5)
 
         if player.moved or player.dead:
@@ -1043,7 +1044,7 @@ def main_screen_loop():
     terminal.refresh()
     e = terminal.read()
     if e == terminal.TK_CLOSE:
-        exit()
+        sys.exit()
     terminal.clear()
     player.stunned = 1
 
