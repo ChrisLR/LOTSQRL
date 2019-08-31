@@ -413,6 +413,8 @@ class SpiderQueen(Actor):
             self.moved = True
         elif press == terminal.TK_F:
             self.moved = self.fire_web()
+        elif press == terminal.TK_CLOSE:
+            exit()
 
         if self.moved:
             if self.egg_cool_down > 0:
@@ -790,6 +792,9 @@ def game_loop(level):
         if not player.dead:
             player.act()
         else:
+            if terminal.has_input():
+                if terminal.read() == terminal.TK_CLOSE:
+                    exit()
             time.sleep(0.5)
 
         if player.moved or player.dead:
@@ -798,7 +803,7 @@ def game_loop(level):
                     continue
                 actor.act()
 
-        if game_turn >= 10 and game_turn % 10 == 0 and not goblin_chief.dead:
+        if game_turn >= 10 and game_turn % 10 == 0 and not goblin_chief.dead and not player.dead:
             spawn_goblins(level, game_turn)
 
         if player.moved:
@@ -1034,7 +1039,9 @@ def main_screen_loop():
     terminal.printf(30, 18, "Grow your army from their remains.")
     terminal.printf(30, 25, "Press any key to Start")
     terminal.refresh()
-    terminal.read()
+    e = terminal.read()
+    if e == terminal.TK_CLOSE:
+        exit()
     terminal.clear()
     player.stunned = 1
 
@@ -1044,8 +1051,7 @@ def main_screen_loop():
 if __name__ == '__main__':
     graphical_tiles = True
     top_gui_height = 5
-    right_gui_width = 20
-    game_area_width = 80
+    game_area_width = 100
     game_area_height = 30
     message_log_height = 11
     screen_width = 100
