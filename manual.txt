@@ -1,0 +1,34 @@
+Controls
+J - Jump
+F - Fire Web
+E - Eat Corpse
+L - Lay Egg
+
+Numpad 5 - Wait
+Numpad Move/Bump
+
+
+Actions
+
+Jump
+	Allows you to jump 3 tiles in desired direction.
+	When jumping onto another creature it will be damaged and knocked back.
+	If it cannot be knocked back, it will be crushed, killing it instantly.
+
+Fire Web
+	Allows you to fire your web 10 tiles in a desired direction.
+	If it hits a goblin you can fling it 5 tiles.
+	If the flung creature hits another creature both will be stunned and damaged.
+	If it hits a wall it will be stunned longer an receive more damage
+	If you catch the flung creature instead, you will spin it into a cocoon.
+
+
+Eat Corpse
+	Allows you to heal but also to boost your health up to 2x starting health.
+	Careful not to waste corpses, your minions can also eat them to recover.
+
+Lay Egg
+	Allows you to lay an egg, it hatches in 10 turns, spawning a spiderling.
+	This weak critter may not seem like much but in numbers it can turn the tide.
+	If they see a cocoon they will try to burrow in it, laying dormant for 10 more turns
+	but emerging as a stronger spider.
