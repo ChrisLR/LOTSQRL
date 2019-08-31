@@ -835,7 +835,7 @@ def update_messages():
     terminal.printf(0, screen_height - 1, "-" * screen_width)
     y_offset = top_gui_height + game_area_height + 3
     for i, message in enumerate(messages[-message_log_height::]):
-        terminal.printf(0, y_offset + i, message)
+        terminal.printf(1, y_offset + i, message)
 
 
 def get_directional_pos():
