@@ -532,9 +532,10 @@ class SpiderQueen(Actor):
                             return True
                         messages.append("%s smashes against %s!" % (goblin.name, actor.name))
                         goblin.stunned = 1
-                        actor.stunned = 1
-                        goblin.x = gx
-                        goblin.y = gy
+                        if actor != player:
+                            actor.stunned = 1
+                        goblin.x = gx - offset[0]
+                        goblin.y = gy - offset[1]
                         goblin.hp -= random.randint(1, 4)
                         actor.hp -= random.randint(1, 4)
                         if goblin.hp < 0:
