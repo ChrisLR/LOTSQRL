@@ -384,6 +384,7 @@ class SpiderQueen(Actor):
         self.kills = 0
         self.eggs_laid = 0
         self.enemies_crushed = 0
+        self.webs_fired = 0
         self.moved = False
         self.display_priority = 1
         self.max_hp = 40
@@ -457,6 +458,7 @@ class SpiderQueen(Actor):
         if offset is None:
             messages.append("Cancelled")
             return False
+        self.webs_fired += 1
         self.web_cooldown = 20
 
         for i in range(10):
@@ -875,6 +877,7 @@ def draw_top_gui(player, turn):
     terminal.printf(30, 1, "Kills:%s" % player.kills)
     terminal.printf(30, 2, "Eggs Laid:%s" % player.eggs_laid)
     terminal.printf(30, 3, "Crushed:%s" % player.enemies_crushed)
+    terminal.printf(30, 4, "Webs Fired:%s" % player.webs_fired)
 
     if player.dead:
         terminal.printf(45, 4, "[color=red]You are dead![/color]")
@@ -1039,7 +1042,6 @@ def main_screen_loop():
 
 
 if __name__ == '__main__':
-
     graphical_tiles = True
     top_gui_height = 5
     right_gui_width = 20
