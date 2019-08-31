@@ -1018,7 +1018,26 @@ def select_player_spawn(level):
     raise ValueError("Could not find player spawn QQ")
 
 
+def main_screen_loop():
+    terminal.clear()
+    terminal.printf(20, 11, "  / _ \\")
+    terminal.printf(20, 12, "\_\(_)/_/")
+    terminal.printf(20, 13, " _//o\\\\_")
+    terminal.printf(20, 14, "  /   \\")
+    terminal.font("")
+    terminal.printf(30, 8, "Lair of the Spider Queen")
+    terminal.printf(30, 16, "Goblins are infiltrating your lair.")
+    terminal.printf(30, 17, "Punish them, feast on their corpses.")
+    terminal.printf(30, 18, "Grow your army from their remains.")
+    terminal.printf(30, 25, "Press any key to Start")
+    terminal.refresh()
+    while terminal.read() == 224:
+        time.sleep(0.1)
+    return
+
+
 if __name__ == '__main__':
+
     graphical_tiles = True
     top_gui_height = 5
     right_gui_width = 20
@@ -1039,6 +1058,7 @@ if __name__ == '__main__':
     messages = []
     running = terminal.open()
     terminal.set("window: size=%sx%s, title=Lair of the Spider Queen RL, cellsize=8x16" % (screen_width, screen_height))
+    main_screen_loop()
     set_sprites()
     getting_dir = False
     game_loop(first_level)

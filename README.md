@@ -9,4 +9,4 @@ To survive this onslaught, the Spider Queen can
 -Kill goblins and devour their corpses to heal
 
 
-Sprites are from the Dawnlike spriteset, made by DawnBringer!
+Sprites are from the Dawnlike spriteset
