@@ -783,7 +783,7 @@ direction_offsets_char = {
 
 
 def game_loop(level):
-    game_turn = 1
+    game_turn = 0
     while running:
         if not player.dead:
             player.act()
@@ -796,7 +796,7 @@ def game_loop(level):
                     continue
                 actor.act()
 
-        if game_turn % 10 == 0 and not goblin_chief.dead:
+        if game_turn >= 10 and game_turn % 10 == 0 and not goblin_chief.dead:
             spawn_goblins(level, game_turn)
 
         if player.moved:
@@ -1024,15 +1024,17 @@ def main_screen_loop():
     terminal.printf(20, 12, "\_\(_)/_/")
     terminal.printf(20, 13, " _//o\\\\_")
     terminal.printf(20, 14, "  /   \\")
-    terminal.font("")
+
     terminal.printf(30, 8, "Lair of the Spider Queen")
     terminal.printf(30, 16, "Goblins are infiltrating your lair.")
     terminal.printf(30, 17, "Punish them, feast on their corpses.")
     terminal.printf(30, 18, "Grow your army from their remains.")
     terminal.printf(30, 25, "Press any key to Start")
     terminal.refresh()
-    while terminal.read() == 224:
-        time.sleep(0.1)
+    terminal.read()
+    terminal.clear()
+    player.stunned = 1
+
     return
 
 
