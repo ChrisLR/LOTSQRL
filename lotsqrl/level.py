@@ -45,4 +45,4 @@ class Level(object):
         return [actor for actor in self.actors if actor.x == x and actor.y == y]
 
     def get_actors_by_team(self, team):
-        return self.actors_by_team[team]
+        return self.actors_by_team.get(team, None)

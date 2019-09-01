@@ -2,10 +2,12 @@ import random
 
 from lotsqrl import movement, utils
 from lotsqrl.actors.base import Actor
-from lotsqrl.teams import Team
+from lotsqrl.teams import Team, ActorTypes
 
 
 class Goblin(Actor):
+    actor_type = ActorTypes.Goblin
+
     def __init__(self, game, x, y):
         super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
         self.display_priority = 8
@@ -22,7 +24,7 @@ class Goblin(Actor):
                 return movement.step_to_target(self, closest_spider)
 
     def bump(self, target):
-        if not isinstance(target, GoblinChief):
+        if not target.team == Team.Goblin:
             return self.stab(target)
         return True
 
@@ -37,6 +39,8 @@ class Goblin(Actor):
 
 
 class GoblinChief(Actor):
+    actor_types = ActorTypes.GoblinChief
+
     def __init__(self, game, x, y):
         super().__init__(game, 50, "G", "Goblin Chief", x, y, team=Team.Goblin)
         self.display_priority = 7
@@ -57,6 +61,9 @@ class GoblinChief(Actor):
                 return movement.step_to_target(self, closest_spider)
 
     def bump(self, target):
+        if target.team != Team.QueenSpider:
+            return False
+
         if self.headbutt_cooldown == 0:
             return self.headbutt(target)
         return self.slice(target)

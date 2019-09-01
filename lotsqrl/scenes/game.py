@@ -48,10 +48,10 @@ class GameScene(object):
         terminal.printf(11, 3, "Jump:%s" % player.jump_cool_down)
         terminal.printf(11, 4, "Web:%s" % player.web_cooldown)
 
-        terminal.printf(30, 1, "Kills:%s" % player.kills)
-        terminal.printf(30, 2, "Eggs Laid:%s" % player.eggs_laid)
-        terminal.printf(30, 3, "Crushed:%s" % player.enemies_crushed)
-        terminal.printf(30, 4, "Webs Fired:%s" % player.webs_fired)
+        terminal.printf(30, 1, "Kills:%s" % player.score.kills)
+        terminal.printf(30, 2, "Eggs Laid:%s" % player.score.eggs_laid)
+        terminal.printf(30, 3, "Crushed:%s" % player.score.enemies_crushed)
+        terminal.printf(30, 4, "Webs Fired:%s" % player.score.webs_fired)
 
         if player.dead:
             terminal.printf(45, 4, "[color=red]You are dead![/color]")

@@ -1,4 +1,4 @@
-from lotsqrl.teams import Team
+from lotsqrl.teams import Team, ActorTypes
 
 
 class GameObject(object):
@@ -13,9 +13,12 @@ class GameObject(object):
         self.team = team
         self.is_player = False
         self.display_priority = 10
+        self.score = None
 
 
 class Actor(GameObject):
+    actor_type = None
+
     def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
         super().__init__(game, display_char, name, x, y, team=team)
         self.hp = hp
@@ -43,6 +46,8 @@ class Actor(GameObject):
 
 
 class Corpse(GameObject):
+    actor_type = ActorTypes.Corpse
+
     def __init__(self, game, name, x=0, y=0):
         super().__init__(game, "%", "the corpse of %s" % name, x, y)
         self.blocking = False

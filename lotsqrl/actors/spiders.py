@@ -4,13 +4,16 @@ import time
 
 from bearlibterminal import terminal
 
-from lotsqrl import movement, utils
+from lotsqrl import behaviors, movement, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.scenes.helpfile import draw_help_file
-from lotsqrl.teams import Team
+from lotsqrl.score import Score
+from lotsqrl.teams import Team, ActorTypes
 
 
 class Egg(Actor):
+    actor_type = ActorTypes.Egg
+
     def __init__(self, game, x, y):
         super().__init__(game, 1, "0", "Egg", x, y, team=Team.QueenSpider)
         self.hatch_countdown = 10
@@ -27,6 +30,8 @@ class Egg(Actor):
 
 
 class Cocoon(Actor):
+    actor_type = ActorTypes.Cocoon
+
     def __init__(self, game, x, y):
         super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.QueenSpider)
         self.hatch_countdown = 10
@@ -59,10 +64,18 @@ class Arachnid(Actor):
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
+            if self.score is not None:
+                self.score.kills += 1
 
         return True
 
+    def burrow(self, target):
+        pass
+
     def eat(self, target):
+        if self.score is not None:
+            self.score.corpses_eaten += 1
+
         if self.is_player:
             self.game.add_message("You eat %s !" % target.name)
         else:
@@ -78,6 +91,8 @@ class Arachnid(Actor):
 
 
 class Spiderling(Arachnid):
+    actor_type = ActorTypes.Spiderling
+    behaviors = [behaviors.Attack, behaviors.BurrowIntoCocoon, behaviors.EatCorpse]
     bite_damage_range = (1, 4)
 
     def __init__(self, game, x, y):
@@ -94,37 +109,12 @@ class Spiderling(Arachnid):
         if self.dead:
             return
 
-        if self.target is None or self.target.level is None:
-            targets = [
-                actor for actor in self.level.actors
-                if actor.team == Team.Goblin
-                or (isinstance(actor, Cocoon) and not actor.burrowed)
-            ]
-            if not targets:
-                return movement.step_to_target(self, self.game.player)
-
-            target = utils.get_closest_actor(self, targets)
-            if target.dead:
-                dist = utils.get_distance(self, target)
-                if dist <= 1:
-                    return self.eat(target)
-                else:
-                    return movement.step_to_target(self, target)
-
-            return movement.step_to_target(self, target)
-        else:
-            dist = utils.get_distance(self, self.target)
-            if dist <= 1:
-                return self.eat(self.target)
-            else:
-                return movement.step_to_target(self, self.target)
+        next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
+        next_behavior.execute(self)
 
     def bump(self, target):
-        if isinstance(target, Cocoon):
-            self.game.add_message("%s burrows into %s!" % (self.name, target.name))
-            target.burrowed = True
-            self.level.remove_actor(self)
-            return True
+        if target.actor_type == ActorTypes.Cocoon and not target.burrowed:
+            return self.burrow(target)
 
         if target is self.target or target.team == Team.Goblin:
             if target.dead:
@@ -134,8 +124,16 @@ class Spiderling(Arachnid):
 
         return False
 
+    def burrow(self, target):
+        self.game.add_message("%s burrows into %s!" % (self.name, target.name))
+        target.burrowed = True
+        self.level.remove_actor(self)
+        return True
+
 
 class Spider(Arachnid):
+    actor_type = ActorTypes.Spider
+    behaviors = [behaviors.Attack, behaviors.EatCorpse]
     bite_damage_range = (2, 8)
 
     def __init__(self, game, x, y):
@@ -152,26 +150,8 @@ class Spider(Arachnid):
         if self.dead:
             return
 
-        if self.target is None or self.target.level is None:
-            goblins = self.level.get_actors_by_team(Team.Goblin)
-            if not goblins:
-                return movement.step_to_target(self, self.game.player)
-
-            closest_goblin = utils.get_closest_actor(self, goblins)
-            if closest_goblin.dead:
-                dist = utils.get_distance(self, closest_goblin)
-                if dist <= 1:
-                    return self.eat(closest_goblin)
-                else:
-                    return movement.step_to_target(self, closest_goblin)
-
-            return movement.step_to_target(self, closest_goblin)
-        else:
-            dist = utils.get_distance(self, self.target)
-            if dist <= 1:
-                return self.eat(self.target)
-            else:
-                return movement.step_to_target(self, self.target)
+        next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
+        next_behavior.execute(self)
 
     def bump(self, target):
         if target is self.target or target.team == Team.Goblin:
@@ -184,6 +164,7 @@ class Spider(Arachnid):
 
 
 class SpiderQueen(Arachnid):
+    actor_type = ActorTypes.QueenSpider
     bite_damage_range = (4, 8)
     egg_delay = 11
     jump_delay = 6
@@ -195,11 +176,7 @@ class SpiderQueen(Arachnid):
         self.jump_cool_down = 0
         self.web_cooldown = 0
         self.is_player = True
-        self.corpse_eaten = 0
-        self.kills = 0
-        self.eggs_laid = 0
-        self.enemies_crushed = 0
-        self.webs_fired = 0
+        self.score = Score()
         self.moved = False
         self.display_priority = 1
         self.max_hp = 40
@@ -244,20 +221,6 @@ class SpiderQueen(Arachnid):
     def bump(self, target):
         return self.bite(target)
 
-    def bite(self, target):
-        result = super().bite(target)
-        if target.hp <= 0:
-            self.kills += 1
-
-        return result
-
-    def eat(self, target):
-        result = super().eat(target)
-        if result:
-            self.corpse_eaten += 1
-
-        return result
-
     def fire_web(self):
         if self.web_cooldown > 0:
             self.game.add_message("You need to wait %s more rounds to fire web." % self.web_cooldown)
@@ -268,7 +231,9 @@ class SpiderQueen(Arachnid):
         if offset is None:
             self.game.add_message("Cancelled", show_now=True)
             return False
-        self.webs_fired += 1
+
+        if self.score is not None:
+            self.score.webs_fired += 1
         self.web_cooldown = 20
 
         for i in range(10):
@@ -383,7 +348,8 @@ class SpiderQueen(Arachnid):
         new_egg = Egg(self.game, self.x, self.y)
         self.level.add_actor(new_egg)
         self.egg_cool_down = self.egg_delay
-        self.eggs_laid += 1
+        if self.score is not None:
+            self.score.eggs_laid += 1
 
         return True
 
@@ -449,7 +415,8 @@ class SpiderQueen(Arachnid):
                     if moved is False and collision is not self.game.boss:
                         self.game.add_message("%s is crushed under you!" % collision.name)
                         collision.on_death()
-                        self.enemies_crushed += 1
+                        if self.score is not None:
+                            self.score.enemies_crushed += 1
 
             self.x = x
             self.y = y
