@@ -16,8 +16,7 @@ class Goblin(Actor):
             return
 
         if not self.dead:
-            spiders = [actor for actor in self.level.actors
-                       if actor.team == Team.QueenSpider and not actor.dead]
+            spiders = self.level.get_actors_by_team(Team.QueenSpider)
             if spiders:
                 closest_spider = utils.get_closest_actor(self, spiders)
                 return movement.step_to_target(self, closest_spider)
@@ -52,8 +51,7 @@ class GoblinChief(Actor):
             self.headbutt_cooldown -= 1
 
         if not self.dead:
-            spiders = [actor for actor in self.level.actors
-                       if actor.team == Team.QueenSpider and not actor.dead]
+            spiders = self.level.get_actors_by_team(Team.QueenSpider)
             if spiders:
                 closest_spider = utils.get_closest_actor(self, spiders)
                 return movement.step_to_target(self, closest_spider)

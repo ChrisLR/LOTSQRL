@@ -48,7 +48,10 @@ class Arachnid(Actor):
     bite_damage_range = (1, 4)
 
     def bite(self, target):
-        if self is self.game.player:
+        if target.team == self.team:
+            return False
+
+        if self.is_player:
             self.game.add_message("You bite %s!" % target.name)
         else:
             self.game.add_message("%s bites %s!" % (self.name, target.name))
@@ -60,7 +63,7 @@ class Arachnid(Actor):
         return True
 
     def eat(self, target):
-        if self is self.game.player:
+        if self.is_player:
             self.game.add_message("You eat %s !" % target.name)
         else:
             self.game.add_message("%s eats %s !" % (self.name, target.name))
@@ -92,12 +95,14 @@ class Spiderling(Arachnid):
             return
 
         if self.target is None or self.target.level is None:
-            targets = [actor for actor in self.level.actors
-                       if actor.team == Team.Goblin
-                       or (isinstance(actor, Cocoon) and not actor.burrowed)]
+            targets = [
+                actor for actor in self.level.actors
+                if actor.team == Team.Goblin
+                or (isinstance(actor, Cocoon) and not actor.burrowed)
+            ]
             if not targets:
-                spider = next(actor for actor in self.level.actors if actor.is_player)
-                return movement.step_to_target(self, spider)
+                return movement.step_to_target(self, self.game.player)
+
             target = utils.get_closest_actor(self, targets)
             if target.dead:
                 dist = utils.get_distance(self, target)
@@ -105,6 +110,7 @@ class Spiderling(Arachnid):
                     return self.eat(target)
                 else:
                     return movement.step_to_target(self, target)
+
             return movement.step_to_target(self, target)
         else:
             dist = utils.get_distance(self, self.target)
@@ -147,10 +153,10 @@ class Spider(Arachnid):
             return
 
         if self.target is None or self.target.level is None:
-            goblins = [actor for actor in self.level.actors if actor.team == Team.Goblin]
+            goblins = self.level.get_actors_by_team(Team.Goblin)
             if not goblins:
-                spider = next(actor for actor in self.level.actors if actor.is_player)
-                return movement.step_to_target(self, spider)
+                return movement.step_to_target(self, self.game.player)
+
             closest_goblin = utils.get_closest_actor(self, goblins)
             if closest_goblin.dead:
                 dist = utils.get_distance(self, closest_goblin)
@@ -158,6 +164,7 @@ class Spider(Arachnid):
                     return self.eat(closest_goblin)
                 else:
                     return movement.step_to_target(self, closest_goblin)
+
             return movement.step_to_target(self, closest_goblin)
         else:
             dist = utils.get_distance(self, self.target)
@@ -274,7 +281,7 @@ class SpiderQueen(Arachnid):
                     return True
                 for wf in range(1, 5):
                     gx, gy = self.x + (offset[0] * wf), self.y + (offset[1] * wf)
-                    actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
+                    actors = [actor for actor in self.level.get_actors_by_pos(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
                         self.game.add_message("You smash against %s!" % actor.name)
@@ -309,9 +316,9 @@ class SpiderQueen(Arachnid):
             terminal.layer(3)
             terminal.refresh()
             time.sleep(0.05)
-            actors = self.level.get_actors(web_x, web_y)
-            if actors:
-                goblin = next((actor for actor in actors if actor.team == Team.Goblin and not actor.dead), None)
+            goblins = self.level.get_actors_by_pos(web_x, web_y, team=Team.Goblin)
+            if goblins:
+                goblin = goblins[0]
                 if goblin is None:
                     continue
                 self.game.add_message("You web latches on %s!" % goblin.name)
@@ -323,7 +330,7 @@ class SpiderQueen(Arachnid):
                 self.game.add_message("You fling %s in the air!" % goblin.name)
                 for wf in range(1, 5):
                     gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
-                    actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
+                    actors = [actor for actor in self.level.get_actors_by_pos(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
                         if actor == self and goblin != self.game.boss:
@@ -413,16 +420,12 @@ class SpiderQueen(Arachnid):
             return False
 
         tx, ty = self.x + offset[0], self.y + offset[1]
-        target = self.get_edible_target(self.level.get_actors(tx, ty))
-        if target is not None:
-            return self.eat(target)
+        targets = self.level.get_actors_by_pos(tx, ty, team=Team.Corpse)
+        if targets:
+            return self.eat(targets[0])
+
         self.game.add_message("No corpses there.", show_now=True)
         return False
-
-    def get_edible_target(self, targets):
-        corpse = next((target for target in targets if target.dead), None)
-        if corpse:
-            return corpse
 
     def on_death(self):
         self.blocking = False
@@ -432,7 +435,7 @@ class SpiderQueen(Arachnid):
 
     def jump_to(self, x, y):
         if self.level.get_tile(x, y) == ".":
-            collides = self.level.get_actors(x, y)
+            collides = self.level.get_actors_by_pos(x, y)
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
                 self.game.add_message("You leap into %s" % ','.join((collision.name for collision in collisions)))

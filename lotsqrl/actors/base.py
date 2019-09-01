@@ -1,3 +1,6 @@
+from lotsqrl.teams import Team
+
+
 class GameObject(object):
     def __init__(self, game, display_char="", name="", x=0, y=0, team=None):
         self.game = game
@@ -34,3 +37,17 @@ class Actor(GameObject):
         self.display_char = "%"
         self.display_priority = 10
         self.game.add_message(self.name + " is dead!")
+        corpse = Corpse(self.game, self.name, self.x, self.y)
+        self.game.level.remove_actor(self)
+        self.game.level.add_actor(corpse)
+
+
+class Corpse(GameObject):
+    def __init__(self, game, name, x=0, y=0):
+        super().__init__(game, "%", "the corpse of %s" % name, x, y)
+        self.blocking = False
+        self.team = Team.Corpse
+        self.dead = True
+
+    def act(self):
+        pass

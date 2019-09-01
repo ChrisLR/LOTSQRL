@@ -54,7 +54,7 @@ def move_to(actor, x, y, bump=True):
         return
 
     if level.get_tile(x, y) == ".":
-        collides = actor.level.get_actors(x, y)
+        collides = actor.level.get_actors_by_pos(x, y)
         collision = next((collide for collide in collides if collide is not actor and collide.blocking), None)
         if collision is not None and bump is True:
             return actor.bump(collision)
