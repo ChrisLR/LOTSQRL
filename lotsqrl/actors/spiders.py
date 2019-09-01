@@ -4,10 +4,10 @@ import time
 
 from bearlibterminal import terminal
 
-from lotsqrl.actors.base import Actor
-from lotsqrl.teams import Team
 from lotsqrl import movement, utils
+from lotsqrl.actors.base import Actor
 from lotsqrl.scenes.helpfile import draw_help_file
+from lotsqrl.teams import Team
 
 
 class Egg(Actor):
@@ -44,7 +44,39 @@ class Cocoon(Actor):
                 self.level.remove_actor(self)
 
 
-class Spiderling(Actor):
+class Arachnid(Actor):
+    bite_damage_range = (1, 4)
+
+    def bite(self, target):
+        if self is self.game.player:
+            self.game.add_message("You bite %s!" % target.name)
+        else:
+            self.game.add_message("%s bites %s!" % (self.name, target.name))
+        damage = random.randint(*self.bite_damage_range)
+        target.hp -= damage
+        if target.hp <= 0:
+            target.on_death()
+
+        return True
+
+    def eat(self, target):
+        if self is self.game.player:
+            self.game.add_message("You eat %s !" % target.name)
+        else:
+            self.game.add_message("%s eats %s !" % (self.name, target.name))
+        self.level.remove_actor(target)
+        self.target = None
+        if self.hp + 5 <= self.max_hp:
+            self.hp += 5
+        else:
+            self.hp = self.max_hp
+
+        return True
+
+
+class Spiderling(Arachnid):
+    bite_damage_range = (1, 4)
+
     def __init__(self, game, x, y):
         super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.QueenSpider)
         self.target = None
@@ -96,28 +128,10 @@ class Spiderling(Actor):
 
         return False
 
-    def bite(self, target):
-        self.game.add_message("%s bites %s!" % (self.name, target.name))
-        damage = random.randint(1, 4)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
 
-        return True
+class Spider(Arachnid):
+    bite_damage_range = (2, 8)
 
-    def eat(self, target):
-        self.game.add_message("%s eats %s !" % (self.name, target.name))
-        self.level.remove_actor(target)
-        self.target = None
-        if self.hp + 5 <= self.max_hp:
-            self.hp += 5
-        else:
-            self.hp = self.max_hp
-
-        return True
-
-
-class Spider(Actor):
     def __init__(self, game, x, y):
         super().__init__(game, 10, "S", "Spider", x, y, team=Team.QueenSpider)
         self.target = None
@@ -161,28 +175,9 @@ class Spider(Actor):
 
         return False
 
-    def bite(self, target):
-        self.game.add_message("%s bites %s!" % (self.name, target.name))
-        damage = random.randint(2, 8)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
 
-        return True
-
-    def eat(self, target):
-        self.game.add_message("%s eats %s !" % (self.name, target.name))
-        self.level.remove_actor(target)
-        self.target = None
-        if self.hp + 5 <= self.max_hp:
-            self.hp += 5
-        else:
-            self.hp = self.max_hp
-
-        return True
-
-
-class SpiderQueen(Actor):
+class SpiderQueen(Arachnid):
+    bite_damage_range = (4, 8)
     egg_delay = 11
     jump_delay = 6
     web_delay = 20
@@ -243,25 +238,18 @@ class SpiderQueen(Actor):
         return self.bite(target)
 
     def bite(self, target):
-        self.game.add_message("You bite %s" % target.name)
-        damage = random.randint(1, 8)
-        target.hp -= damage
+        result = super().bite(target)
         if target.hp <= 0:
-            target.on_death()
             self.kills += 1
 
-        return True
+        return result
 
     def eat(self, target):
-        self.game.add_message("You eat %s !" % target.name)
-        if self.hp + 5 <= self.max_hp:
-            self.hp += 5
-        else:
-            self.hp = self.max_hp
-        self.level.remove_actor(target)
-        self.corpse_eaten += 1
+        result = super().eat(target)
+        if result:
+            self.corpse_eaten += 1
 
-        return True
+        return result
 
     def fire_web(self):
         if self.web_cooldown > 0:

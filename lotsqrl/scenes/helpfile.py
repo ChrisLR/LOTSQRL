@@ -1,3 +1,6 @@
+from bearlibterminal import terminal
+
+
 def draw_help_file():
     terminal.clear()
     lines = []

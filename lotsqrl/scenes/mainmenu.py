@@ -1,5 +1,6 @@
-from bearlibterminal import terminal
 import sys
+
+from bearlibterminal import terminal
 
 
 def main_screen_loop():

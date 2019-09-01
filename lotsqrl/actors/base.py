@@ -20,6 +20,7 @@ class Actor(GameObject):
         self.dead = False
         self.display_priority = 9
         self.stunned = 0
+        self.target = None
 
     def act(self):
         pass
