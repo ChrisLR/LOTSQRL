@@ -6,11 +6,13 @@ from bearlibterminal import terminal
 
 from lotsqrl.actors.base import Actor
 from lotsqrl.teams import Team
+from lotsqrl import movement, utils
+from lotsqrl.scenes.helpfile import draw_help_file
 
 
 class Egg(Actor):
-    def __init__(self, x, y):
-        super().__init__(1, "0", "Egg", x, y, team=Team.QueenSpider)
+    def __init__(self, game, x, y):
+        super().__init__(game, 1, "0", "Egg", x, y, team=Team.QueenSpider)
         self.hatch_countdown = 10
         self.display_priority = 9
 
@@ -20,13 +22,13 @@ class Egg(Actor):
 
         self.hatch_countdown -= 1
         if self.hatch_countdown <= 0:
-            self.level.add_actor(Spiderling(self.x, self.y))
+            self.level.add_actor(Spiderling(self.game, self.x, self.y))
             self.level.remove_actor(self)
 
 
 class Cocoon(Actor):
-    def __init__(self, x, y):
-        super().__init__(1, "(", "Cocoon", x, y, team=Team.QueenSpider)
+    def __init__(self, game, x, y):
+        super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.QueenSpider)
         self.hatch_countdown = 10
         self.display_priority = 9
         self.burrowed = False
@@ -38,13 +40,13 @@ class Cocoon(Actor):
         if self.burrowed is True:
             self.hatch_countdown -= 1
             if self.hatch_countdown <= 0:
-                self.level.add_actor(Spider(self.x, self.y))
+                self.level.add_actor(Spider(self.game, self.x, self.y))
                 self.level.remove_actor(self)
 
 
 class Spiderling(Actor):
-    def __init__(self, x, y):
-        super().__init__(4, "s", "Spiderling", x, y, team=Team.QueenSpider)
+    def __init__(self, game, x, y):
+        super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.QueenSpider)
         self.target = None
         self.display_priority = 8
         self.max_hp = 8
@@ -63,25 +65,25 @@ class Spiderling(Actor):
                        or (isinstance(actor, Cocoon) and not actor.burrowed)]
             if not targets:
                 spider = next(actor for actor in self.level.actors if actor.is_player)
-                return step_to_target(self, spider)
-            target = get_closest_actor(self, targets)
+                return movement.step_to_target(self, spider)
+            target = utils.get_closest_actor(self, targets)
             if target.dead:
-                dist = get_distance(self, target)
+                dist = utils.get_distance(self, target)
                 if dist <= 1:
                     return self.eat(target)
                 else:
-                    return step_to_target(self, target)
-            return step_to_target(self, target)
+                    return movement.step_to_target(self, target)
+            return movement.step_to_target(self, target)
         else:
-            dist = get_distance(self, self.target)
+            dist = utils.get_distance(self, self.target)
             if dist <= 1:
                 return self.eat(self.target)
             else:
-                return step_to_target(self, self.target)
+                return movement.step_to_target(self, self.target)
 
     def bump(self, target):
         if isinstance(target, Cocoon):
-            messages.append("%s burrows into %s!" % (self.name, target.name))
+            self.game.add_message("%s burrows into %s!" % (self.name, target.name))
             target.burrowed = True
             self.level.remove_actor(self)
             return True
@@ -95,7 +97,7 @@ class Spiderling(Actor):
         return False
 
     def bite(self, target):
-        messages.append("%s bites %s!" % (self.name, target.name))
+        self.game.add_message("%s bites %s!" % (self.name, target.name))
         damage = random.randint(1, 4)
         target.hp -= damage
         if target.hp <= 0:
@@ -104,7 +106,7 @@ class Spiderling(Actor):
         return True
 
     def eat(self, target):
-        messages.append("%s eats %s !" % (self.name, target.name))
+        self.game.add_message("%s eats %s !" % (self.name, target.name))
         self.level.remove_actor(target)
         self.target = None
         if self.hp + 5 <= self.max_hp:
@@ -116,8 +118,8 @@ class Spiderling(Actor):
 
 
 class Spider(Actor):
-    def __init__(self, x, y):
-        super().__init__(10, "S", "Spider", x, y, team=Team.QueenSpider)
+    def __init__(self, game, x, y):
+        super().__init__(game, 10, "S", "Spider", x, y, team=Team.QueenSpider)
         self.target = None
         self.display_priority = 8
         self.max_hp = 20
@@ -134,21 +136,21 @@ class Spider(Actor):
             goblins = [actor for actor in self.level.actors if actor.team == Team.Goblin]
             if not goblins:
                 spider = next(actor for actor in self.level.actors if actor.is_player)
-                return step_to_target(self, spider)
-            closest_goblin = get_closest_actor(self, goblins)
+                return movement.step_to_target(self, spider)
+            closest_goblin = utils.get_closest_actor(self, goblins)
             if closest_goblin.dead:
-                dist = get_distance(self, closest_goblin)
+                dist = utils.get_distance(self, closest_goblin)
                 if dist <= 1:
                     return self.eat(closest_goblin)
                 else:
-                    return step_to_target(self, closest_goblin)
-            return step_to_target(self, closest_goblin)
+                    return movement.step_to_target(self, closest_goblin)
+            return movement.step_to_target(self, closest_goblin)
         else:
-            dist = get_distance(self, self.target)
+            dist = utils.get_distance(self, self.target)
             if dist <= 1:
                 return self.eat(self.target)
             else:
-                return step_to_target(self, self.target)
+                return movement.step_to_target(self, self.target)
 
     def bump(self, target):
         if target is self.target or target.team == Team.Goblin:
@@ -160,7 +162,7 @@ class Spider(Actor):
         return False
 
     def bite(self, target):
-        messages.append("%s bites %s!" % (self.name, target.name))
+        self.game.add_message("%s bites %s!" % (self.name, target.name))
         damage = random.randint(2, 8)
         target.hp -= damage
         if target.hp <= 0:
@@ -169,7 +171,7 @@ class Spider(Actor):
         return True
 
     def eat(self, target):
-        messages.append("%s eats %s !" % (self.name, target.name))
+        self.game.add_message("%s eats %s !" % (self.name, target.name))
         self.level.remove_actor(target)
         self.target = None
         if self.hp + 5 <= self.max_hp:
@@ -185,8 +187,8 @@ class SpiderQueen(Actor):
     jump_delay = 6
     web_delay = 20
 
-    def __init__(self, x, y):
-        super().__init__(20, "@", "You", x, y, team=Team.QueenSpider)
+    def __init__(self, game, x, y):
+        super().__init__(game, 20, "@", "You", x, y, team=Team.QueenSpider)
         self.egg_cool_down = 0
         self.jump_cool_down = 0
         self.web_cooldown = 0
@@ -210,9 +212,9 @@ class SpiderQueen(Actor):
             return
 
         press = terminal.read()
-        move_action = move_actions.get(press)
+        move_action = movement.move_actions.get(press)
         if move_action is not None:
-            self.moved = move_action(player)
+            self.moved = move_action(self)
 
         if press == terminal.TK_E:
             self.moved = self.try_eat()
@@ -241,7 +243,7 @@ class SpiderQueen(Actor):
         return self.bite(target)
 
     def bite(self, target):
-        messages.append("You bite %s" % target.name)
+        self.game.add_message("You bite %s" % target.name)
         damage = random.randint(1, 8)
         target.hp -= damage
         if target.hp <= 0:
@@ -251,7 +253,7 @@ class SpiderQueen(Actor):
         return True
 
     def eat(self, target):
-        messages.append("You eat %s !" % target.name)
+        self.game.add_message("You eat %s !" % target.name)
         if self.hp + 5 <= self.max_hp:
             self.hp += 5
         else:
@@ -263,15 +265,13 @@ class SpiderQueen(Actor):
 
     def fire_web(self):
         if self.web_cooldown > 0:
-            messages.append("You need to wait %s more rounds to fire web." % self.web_cooldown)
+            self.game.add_message("You need to wait %s more rounds to fire web." % self.web_cooldown)
             return False
 
-        messages.append("Press direction to fire web")
-        update_messages()
-        terminal.refresh()
-        offset = get_directional_pos()
+        self.game.add_message("Press direction to fire web", show_now=True)
+        offset = utils.get_directional_pos()
         if offset is None:
-            messages.append("Cancelled")
+            self.game.add_message("Cancelled", show_now=True)
             return False
         self.webs_fired += 1
         self.web_cooldown = 20
@@ -279,19 +279,17 @@ class SpiderQueen(Actor):
         for i in range(10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
             if self.level.get_tile(web_x, web_y) == "#":
-                messages.append("Your web hits a wall, press a key to fling yourself.")
-                update_messages()
-                terminal.refresh()
-                offset = get_directional_pos()
+                self.game.add_message("Your web hits a wall, press a key to fling yourself.", show_now=True)
+                offset = utils.get_directional_pos()
                 if offset is None:
-                    messages.append("You snap your web with your fangs")
+                    self.game.add_message("You snap your web with your fangs")
                     return True
                 for wf in range(1, 5):
                     gx, gy = self.x + (offset[0] * wf), self.y + (offset[1] * wf)
                     actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
-                        messages.append("You smash against %s!" % actor.name)
+                        self.game.add_message("You smash against %s!" % actor.name)
                         actor.stunned = 2
                         self.x = gx - offset[0]
                         self.y = gy - offset[1]
@@ -313,11 +311,13 @@ class SpiderQueen(Actor):
                     self.y = gy
                 return True
 
-            web_char = direction_offsets_char.get(offset)
+            web_char = utils.direction_offsets_char.get(offset)
             terminal.layer(2)
-            set_sprite_font()
+            # TODO Improve this way to draw something/animation now
+            camera = self.game.camera
+            camera.set_sprite_font()
             terminal.put(*camera.transform(web_x, web_y), web_char)
-            reset_font()
+            camera.reset_font()
             terminal.layer(3)
             terminal.refresh()
             time.sleep(0.05)
@@ -326,30 +326,28 @@ class SpiderQueen(Actor):
                 goblin = next((actor for actor in actors if actor.team == Team.Goblin and not actor.dead), None)
                 if goblin is None:
                     continue
-                messages.append("You web latches on %s!" % goblin.name)
-                messages.append("Press direction to fling %s" % goblin.name)
-                update_messages()
-                terminal.refresh()
-                offset = get_directional_pos()
+                self.game.add_message("You web latches on %s!" % goblin.name)
+                self.game.add_message("Press direction to fling %s" % goblin.name, show_now=True)
+                offset = utils.get_directional_pos()
                 if offset is None:
-                    messages.append("You snap your web with your fangs")
+                    self.game.add_message("You snap your web with your fangs")
                     return True
-                messages.append("You fling %s in the air!" % goblin.name)
+                self.game.add_message("You fling %s in the air!" % goblin.name)
                 for wf in range(1, 5):
                     gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
                     actors = [actor for actor in self.level.get_actors(gx, gy) if not actor.dead]
                     if actors:
                         actor = actors[0]
-                        if actor == self and goblin != goblin_chief:
-                            messages.append("You catch %s and start spinning a cocoon!" % goblin.name)
+                        if actor == self and goblin != self.game.boss:
+                            self.game.add_message("You catch %s and start spinning a cocoon!" % goblin.name)
                             goblin.dead = True
                             self.level.remove_actor(goblin)
-                            new_cocoon = Cocoon(gx - offset[0], gy - offset[1])
+                            new_cocoon = Cocoon(self.game, gx - offset[0], gy - offset[1])
                             self.level.add_actor(new_cocoon)
                             return True
-                        messages.append("%s smashes against %s!" % (goblin.name, actor.name))
+                        self.game.add_message("%s smashes against %s!" % (goblin.name, actor.name))
                         goblin.stunned = 1
-                        if actor != player:
+                        if actor != self.game.player:
                             actor.stunned = 1
                         goblin.x = gx - offset[0]
                         goblin.y = gy - offset[1]
@@ -363,7 +361,7 @@ class SpiderQueen(Actor):
                     else:
                         tile = self.level.get_tile(gx, gy)
                         if tile == "#":
-                            messages.append("%s smashes against the wall!" % goblin.name)
+                            self.game.add_message("%s smashes against the wall!" % goblin.name)
                             goblin.stunned = 3
                             goblin.hp -= random.randint(4, 8)
                             if goblin.hp < 0:
@@ -377,17 +375,17 @@ class SpiderQueen(Actor):
 
                 return True
         else:
-            messages.append("There is no one to web there.")
+            self.game.add_message("There is no one to web there.")
 
         return False
 
     def lay_egg(self):
         if self.egg_cool_down > 0:
-            messages.append("You need to wait %s more rounds to lay." % self.egg_cool_down)
+            self.game.add_message("You need to wait %s more rounds to lay." % self.egg_cool_down)
             return False
 
-        messages.append("You lay an egg.")
-        new_egg = Egg(self.x, self.y)
+        self.game.add_message("You lay an egg.")
+        new_egg = Egg(self.game, self.x, self.y)
         self.level.add_actor(new_egg)
         self.egg_cool_down = self.egg_delay
         self.eggs_laid += 1
@@ -396,15 +394,13 @@ class SpiderQueen(Actor):
 
     def jump(self):
         if self.jump_cool_down > 0:
-            messages.append("You need to wait %s more rounds to jump." % self.jump_cool_down)
+            self.game.add_message("You need to wait %s more rounds to jump." % self.jump_cool_down)
             return False
 
-        messages.append("Press direction to jump")
-        update_messages()
-        terminal.refresh()
-        offset = get_directional_pos()
+        self.game.add_message("Press direction to jump", show_now=True)
+        offset = utils.get_directional_pos()
         if offset is None:
-            messages.append("Cancelled")
+            self.game.add_message("Cancelled", show_now=True)
             return False
 
         ox, oy = offset
@@ -415,25 +411,24 @@ class SpiderQueen(Actor):
 
         jumped = self.jump_to(self.x + ox, self.y + oy)
         if jumped is False:
-            messages.append("Can't jump there, a wall in the way.")
+            self.game.add_message("Can't jump there, a wall in the way.")
             return False
         else:
             self.jump_cool_down = self.jump_delay
             return True
 
     def try_eat(self):
-        messages.append("Press direction to eat corpse")
-        update_messages()
-        terminal.refresh()
-        offset = get_directional_pos()
+        self.game.add_message("Press direction to eat corpse", show_now=True)
+        offset = utils.get_directional_pos()
         if offset is None:
-            messages.append("Cancelled")
+            self.game.add_message("Cancelled", show_now=True)
             return False
 
         tx, ty = self.x + offset[0], self.y + offset[1]
         target = self.get_edible_target(self.level.get_actors(tx, ty))
         if target is not None:
             return self.eat(target)
+        self.game.add_message("No corpses there.", show_now=True)
         return False
 
     def get_edible_target(self, targets):
@@ -445,23 +440,23 @@ class SpiderQueen(Actor):
         self.blocking = False
         self.dead = True
         self.display_char = "%"
-        messages.append("You are DEAD!")
+        self.game.add_message("You are DEAD!")
 
     def jump_to(self, x, y):
         if self.level.get_tile(x, y) == ".":
             collides = self.level.get_actors(x, y)
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
-                messages.append("You leap into %s" % ','.join((collision.name for collision in collisions)))
-                dx, dy = get_actor_delta(self, collisions[0])
-                dx = sign(dx) * 2
-                dy = sign(dy) * 2
+                self.game.add_message("You leap into %s" % ','.join((collision.name for collision in collisions)))
+                dx, dy = utils.get_actor_delta(self, collisions[0])
+                dx = utils.sign(dx) * 2
+                dy = utils.sign(dy) * 2
 
                 for collision in collisions:
                     collision.hp -= random.randint(1, 3)
-                    moved = move_to(collision, collision.x + dx, collision.y + dy, bump=False)
-                    if moved is False and collision is not goblin_chief:
-                        messages.append("%s is crushed under you!" % collision.name)
+                    moved = movement.move_to(collision, collision.x + dx, collision.y + dy, bump=False)
+                    if moved is False and collision is not self.game.boss:
+                        self.game.add_message("%s is crushed under you!" % collision.name)
                         collision.on_death()
                         self.enemies_crushed += 1
 

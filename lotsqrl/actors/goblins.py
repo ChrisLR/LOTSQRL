@@ -1,12 +1,13 @@
 import random
 
+from lotsqrl import movement, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.teams import Team
 
 
 class Goblin(Actor):
-    def __init__(self, x, y):
-        super().__init__(5, "g", "Goblin", x, y, team=Team.Goblin)
+    def __init__(self, game, x, y):
+        super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
         self.display_priority = 8
 
     def act(self):
@@ -18,8 +19,8 @@ class Goblin(Actor):
             spiders = [actor for actor in self.level.actors
                        if actor.team == Team.QueenSpider and not actor.dead]
             if spiders:
-                closest_spider = get_closest_actor(self, spiders)
-                return step_to_target(self, closest_spider)
+                closest_spider = utils.get_closest_actor(self, spiders)
+                return movement.step_to_target(self, closest_spider)
 
     def bump(self, target):
         if not isinstance(target, GoblinChief):
@@ -27,7 +28,7 @@ class Goblin(Actor):
         return True
 
     def stab(self, target):
-        messages.append(self.name + " stabs %s!" % target.name)
+        self.game.add_message(self.name + " stabs %s!" % target.name)
         damage = random.randint(1, 4)
         target.hp -= damage
         if target.hp <= 0:
@@ -37,8 +38,8 @@ class Goblin(Actor):
 
 
 class GoblinChief(Actor):
-    def __init__(self, x, y):
-        super().__init__(50, "G", "Goblin Chief", x, y, team=Team.Goblin)
+    def __init__(self, game, x, y):
+        super().__init__(game, 50, "G", "Goblin Chief", x, y, team=Team.Goblin)
         self.display_priority = 7
         self.headbutt_cooldown = 0
 
@@ -54,8 +55,8 @@ class GoblinChief(Actor):
             spiders = [actor for actor in self.level.actors
                        if actor.team == Team.QueenSpider and not actor.dead]
             if spiders:
-                closest_spider = get_closest_actor(self, spiders)
-                return step_to_target(self, closest_spider)
+                closest_spider = utils.get_closest_actor(self, spiders)
+                return movement.step_to_target(self, closest_spider)
 
     def bump(self, target):
         if self.headbutt_cooldown == 0:
@@ -63,7 +64,7 @@ class GoblinChief(Actor):
         return self.slice(target)
 
     def headbutt(self, target):
-        messages.append(self.name + " headbutts %s!" % target.name)
+        self.game.add_message(self.name + " headbutts %s!" % target.name)
         damage = random.randint(1, 8)
         self.headbutt_cooldown = 20
         target.hp -= damage
@@ -74,7 +75,7 @@ class GoblinChief(Actor):
         return True
 
     def slice(self, target):
-        messages.append(self.name + " slices %s!" % target.name)
+        self.game.add_message(self.name + " slices %s!" % target.name)
         damage = random.randint(4, 12)
         target.hp -= damage
         if target.hp <= 0:

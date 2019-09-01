@@ -1,4 +1,19 @@
+import random
+
 from bearlibterminal import terminal
+
+from lotsqrl import utils
+
+
+def avoid_obstacle(actor, target, offset_x, offset_y):
+    if abs(target.x - actor.x) > abs(target.y - actor.y):
+        if offset_y == 0:
+            return offset_x, random.choice([-1, 1])
+        else:
+            return offset_x, offset_y * -1
+    if offset_x == 0:
+        return random.choice([-1, 1]), offset_y
+    return offset_x * -1, offset_y
 
 
 def move_north(actor):
@@ -61,3 +76,19 @@ move_actions = {
     terminal.TK_KP_4: move_west,
     terminal.TK_KP_7: move_northwest
 }
+
+
+def step_to_target(actor, target):
+    target_dx, target_dy = utils.get_actor_delta(actor, target)
+    sx = utils.sign(target_dx)
+    sy = utils.sign(target_dy)
+    tx = actor.x + sx
+    ty = actor.y + sy
+
+    result = move_to(actor, tx, ty)
+    if result:
+        return result
+
+    fx, fy = avoid_obstacle(actor, target, sx, sy)
+
+    return move_to(actor, actor.x + fx, actor.y + fy)

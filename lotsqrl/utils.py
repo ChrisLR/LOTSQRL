@@ -1,21 +1,8 @@
+from bearlibterminal import terminal
+
+
 def get_closest_actor(origin, actors):
     return min(actors, key=lambda actor: get_distance(origin, actor))
-
-
-def step_to_target(actor, target):
-    target_dx, target_dy = get_actor_delta(actor, target)
-    sx = sign(target_dx)
-    sy = sign(target_dy)
-    tx = actor.x + sx
-    ty = actor.y + sy
-
-    result = move_to(actor, tx, ty)
-    if result:
-        return result
-
-    fx, fy = avoid_obstacle(actor, target, sx, sy)
-
-    return move_to(actor, actor.x + fx, actor.y + fy)
 
 
 def get_actor_delta(actor, target):
@@ -35,7 +22,6 @@ def get_distance(actor, target):
     return abs(target.x - actor.x) + abs(target.y - actor.y)
 
 
-
 def get_directional_pos():
     handled = None
     while not handled:
@@ -48,52 +34,24 @@ def get_directional_pos():
             return
 
 
-def avoid_obstacle(actor, target, offset_x, offset_y):
-    if abs(target.x - actor.x) > abs(target.y - actor.y):
-        if offset_y == 0:
-            return offset_x, random.choice([-1, 1])
-        else:
-            return offset_x, offset_y * -1
-    if offset_x == 0:
-        return random.choice([-1, 1]), offset_y
-    return offset_x * -1, offset_y
+direction_offsets = {
+    terminal.TK_KP_8: (0, -1),
+    terminal.TK_KP_9: (1, -1),
+    terminal.TK_KP_6: (1, 0),
+    terminal.TK_KP_3: (1, 1),
+    terminal.TK_KP_2: (0, 1),
+    terminal.TK_KP_1: (-1, 1),
+    terminal.TK_KP_4: (-1, 0),
+    terminal.TK_KP_7: (-1, -1)
+}
 
-
-def seek_spawn_points(map_cells):
-    possible_coordinates = []
-    top_row = map_cells[0]
-    for x, tile in enumerate(top_row):
-        if tile == ".":
-            possible_coordinates.append((x, 0))
-
-    bottom_row = map_cells[-1]
-    for x, tile in enumerate(bottom_row):
-        if tile == ".":
-            possible_coordinates.append((x, len(bottom_row) - 1))
-
-    for y, row in enumerate(map_cells):
-        left_tile = row[0]
-        if left_tile == ".":
-            possible_coordinates.append((0, y))
-
-        right_tile = row[-1]
-        if right_tile == ".":
-            possible_coordinates.append((len(row) - 1, y))
-
-    return possible_coordinates
-
-
-
-def select_player_spawn(level):
-    middle_x, middle_y = int(level.width / 2), int(level.height / 2)
-    if level.get_tile(middle_x, middle_y) == ".":
-        return middle_x, middle_y
-    tries = 20
-    while tries:
-        middle_x += random.randint(-10, 10)
-        middle_y += random.randint(-10, 10)
-        if level.get_tile(middle_x, middle_y) == ".":
-            return middle_x, middle_y
-        tries -= 1
-
-    raise ValueError("Could not find player spawn QQ")
+direction_offsets_char = {
+    (0, -1): "|",
+    (1, -1): "/",
+    (1, 0): "-",
+    (1, 1): "\\",
+    (0, 1): "|",
+    (-1, 1): "/",
+    (-1, 0): "-",
+    (-1, -1): "\\"
+}
