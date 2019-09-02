@@ -54,7 +54,9 @@ class GameScene(object):
         terminal.printf(30, 4, "Webs Fired:%s" % player.score.webs_fired)
 
         if player.dead:
-            terminal.printf(45, 4, "[color=red]You are dead![/color]")
+            terminal.printf(45, 3, "[color=red]You are dead![/color]")
+            terminal.printf(45, 4, "Press ESCAPE to go back to main menu")
 
-        if boss.dead and not player.dead:
-            terminal.printf(45, 4, "[color=green]You won![/color]")
+        if self.game.game_won is True:
+            terminal.printf(45, 3, "[color=green]You won![/color]")
+            terminal.printf(45, 4, "Press ESCAPE to go back to main menu")

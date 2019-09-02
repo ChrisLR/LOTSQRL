@@ -7,6 +7,7 @@ from bearlibterminal import terminal
 from lotsqrl import actors, automata
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
+from lotsqrl.teams import Team
 
 
 class Options(object):
@@ -42,6 +43,7 @@ class Game(object):
         self.messages = []
         self.level = None
         self.running = False
+        self.should_restart = False
         self.scene = GameScene(self, screen_info)
         self.turn = 0
 
@@ -68,10 +70,17 @@ class Game(object):
 
             if not player.dead:
                 player.act()
+                if self.should_restart is True:
+                    return
             else:
                 if terminal.has_input():
-                    if terminal.read() == terminal.TK_CLOSE:
+                    key_press = terminal.read()
+                    if key_press == terminal.TK_CLOSE:
                         sys.exit()
+                    elif key_press == terminal.TK_ESCAPE:
+                        self.should_restart = True
+                        return
+
                 time.sleep(0.5)
 
             if player.moved or player.dead:
@@ -88,6 +97,9 @@ class Game(object):
                 player.moved = False
                 if not boss.dead:
                     self.turn += 1
+
+            if boss.dead and not level.get_actors_by_team(Team.Goblin):
+                self.game_won = True
 
             terminal.clear()
             self.scene.draw_top_gui()

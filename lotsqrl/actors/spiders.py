@@ -209,6 +209,10 @@ class SpiderQueen(Arachnid):
             sys.exit()
         elif press == terminal.TK_F1:
             draw_help_file()
+        elif press == terminal.TK_ESCAPE:
+            if self.game.game_won:
+                self.game.should_restart = True
+                return
 
         if self.moved:
             if self.egg_cool_down > 0:
