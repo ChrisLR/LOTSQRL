@@ -24,8 +24,14 @@ if __name__ == '__main__':
     options = Options()
     screen_info = ScreenInfo()
     prepare_terminal()
-    game = Game(options, screen_info)
-    mainmenu.main_screen_loop()
-    game.prepare()
-    game.run()
+
+    closing = False
+    while not closing:
+        closing = True
+        game = Game(options, screen_info)
+        mainmenu.main_screen_loop()
+        game.prepare()
+        game.run()
+        if game.should_restart:
+            closing = False
     terminal.close()
