@@ -102,11 +102,12 @@ def step_to_target(actor, target):
         return result
 
     path, runs = path_find(actor, target)
-    actor.path_find = path
-    actor.path_find_runs = int(runs / 2) if runs > 5 else runs
-    next_step = path.pop(0)
+    if path:
+        actor.path_find = path
+        actor.path_find_runs = int(runs / 2) if runs > 5 else runs
+        next_step = path.pop(0)
 
-    return move_to(actor, *next_step)
+        return move_to(actor, *next_step)
 
 
 def path_find(actor, target):
