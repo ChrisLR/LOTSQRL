@@ -27,6 +27,8 @@ class Actor(GameObject):
         self.display_priority = 9
         self.stunned = 0
         self.target = None
+        self.path_find = None
+        self.path_find_runs = None
 
     def act(self):
         pass

@@ -14,6 +14,8 @@ class Level(object):
             self.tiles[i][0] = "#"
             self.tiles[i][width - 1] = "#"
 
+        self.path_grid = None
+
     def add_actor(self, actor):
         self.actors.append(actor)
         actor.level = self

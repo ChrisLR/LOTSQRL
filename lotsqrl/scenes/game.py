@@ -32,7 +32,6 @@ class GameScene(object):
         screen_width = screen_info.screen_width
         top_gui_height = screen_info.top_gui_height
         player = game.player
-        boss = game.boss
         turn = game.turn
 
         terminal.printf(0, 0, "-" * screen_width)

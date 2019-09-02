@@ -42,15 +42,21 @@ def generate_map(width, height, number_of_steps):
     tries = 10
     new_level = Level(width, height)
     while tries:
-        map_cells = generate_tiles(width, height, number_of_steps)
-        spawns = seek_spawn_points(map_cells)
-        if len(spawns) >= 6:
-            new_level.tiles = map_cells
-            new_level.spawns = spawns
-            return new_level
+        try:
+            map_cells = generate_tiles(width, height, number_of_steps)
+            spawns = seek_spawn_points(map_cells)
+
+            if len(spawns) >= 6:
+                new_level.tiles = map_cells
+                new_level.spawns = spawns
+                new_level.path_grid = [[0 if c == "#" else 1 for c in row] for row in map_cells]
+                return new_level
+
+        except ValueError:
+            pass
         tries -= 1
 
-    raise ValueError("Map could not generate with enough spawn points QQ")
+    raise ValueError("Map could not generate with enough spawn points")
 
 
 def random_alive(chance):

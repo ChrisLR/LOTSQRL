@@ -135,4 +135,4 @@ class Game(object):
                 return middle_x, middle_y
             tries -= 1
 
-        raise ValueError("Could not find player spawn QQ")
+        raise ValueError("No Suitable Player Spawn")

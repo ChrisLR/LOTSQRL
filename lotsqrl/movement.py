@@ -1,6 +1,9 @@
 import random
 
 from bearlibterminal import terminal
+from pathfinding.core.diagonal_movement import DiagonalMovement
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
 
 from lotsqrl import utils
 
@@ -79,6 +82,15 @@ move_actions = {
 
 
 def step_to_target(actor, target):
+    if actor.path_find_runs:
+        actor.path_find_runs -= 1
+        if actor.path_find_runs <= 0:
+            actor.path_find = None
+
+    if actor.path_find:
+        next_step = actor.path_find.pop(0)
+        return move_to(actor, *next_step)
+
     target_dx, target_dy = utils.get_actor_delta(actor, target)
     sx = utils.sign(target_dx)
     sy = utils.sign(target_dy)
@@ -89,6 +101,19 @@ def step_to_target(actor, target):
     if result:
         return result
 
-    fx, fy = avoid_obstacle(actor, target, sx, sy)
+    path, runs = path_find(actor, target)
+    actor.path_find = path
+    actor.path_find_runs = int(runs / 2) if runs > 5 else runs
+    next_step = path.pop(0)
 
-    return move_to(actor, actor.x + fx, actor.y + fy)
+    return move_to(actor, *next_step)
+
+
+def path_find(actor, target):
+    grid = Grid(matrix=actor.level.path_grid)
+    start = grid.node(actor.x, actor.y)
+    end = grid.node(target.x, target.y)
+    finder = AStarFinder(diagonal_movement=DiagonalMovement.always)
+    path, runs = finder.find_path(start, end, grid)
+
+    return path[1::], runs
