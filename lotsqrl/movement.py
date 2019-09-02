@@ -108,6 +108,10 @@ def step_to_target(actor, target):
         next_step = path.pop(0)
 
         return move_to(actor, *next_step)
+    else:
+        actor.level.remove_tile(tx, ty)
+        actor.game.add_message(actor.name + " digs through rock.")
+        return True
 
 
 def path_find(actor, target):

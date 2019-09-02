@@ -48,3 +48,7 @@ class Level(object):
 
     def get_actors_by_team(self, team):
         return self.actors_by_team.get(team, None)
+
+    def remove_tile(self, x, y):
+        self.tiles[y][x] = "."
+        self.path_grid[y][x] = 1
