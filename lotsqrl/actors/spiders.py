@@ -20,7 +20,7 @@ class Egg(Actor):
         self.display_priority = 9
 
     def act(self):
-        if self.dead:
+        if self.dead or self.level is None:
             return
 
         self.hatch_countdown -= 1
@@ -39,7 +39,7 @@ class Cocoon(Actor):
         self.burrowed = False
 
     def act(self):
-        if self.dead:
+        if self.dead or self.level is None:
             return
 
         if self.burrowed is True:
@@ -106,7 +106,7 @@ class Spiderling(Arachnid):
             self.stunned -= 1
             return
 
-        if self.dead:
+        if self.dead or self.level is None:
             return
 
         next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
@@ -147,7 +147,7 @@ class Spider(Arachnid):
             self.stunned -= 1
             return
 
-        if self.dead:
+        if self.dead or self.level is None:
             return
 
         next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
@@ -171,7 +171,7 @@ class SpiderQueen(Arachnid):
     web_delay = 20
 
     def __init__(self, game, x, y):
-        super().__init__(game, 800, "@", "You", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 20, "@", "You", x, y, team=Team.SpiderQueen)
         self.egg_cool_down = 0
         self.jump_cool_down = 0
         self.web_cooldown = 0
@@ -179,7 +179,7 @@ class SpiderQueen(Arachnid):
         self.score = Score()
         self.moved = False
         self.display_priority = 1
-        self.max_hp = 800
+        self.max_hp = 40
 
     def act(self):
         if self.stunned > 0:
@@ -187,7 +187,7 @@ class SpiderQueen(Arachnid):
             self.moved = True
             return
 
-        if self.dead:
+        if self.dead or self.level is None:
             return
 
         press = terminal.read()
