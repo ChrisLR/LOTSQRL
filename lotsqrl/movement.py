@@ -88,8 +88,13 @@ def step_to_target(actor, target):
             actor.path_find = None
 
     if actor.path_find:
-        next_step = actor.path_find.pop(0)
-        return move_to(actor, *next_step)
+        next_x, next_y = actor.path_find.pop(0)
+        success = move_to(actor, next_x, next_y)
+        if not success or actor.x != next_x or actor.y != next_y:
+            actor.path_find = None
+            actor.path_find_runs = None
+        else:
+            return success
 
     target_dx, target_dy = utils.get_actor_delta(actor, target)
     sx = utils.sign(target_dx)
@@ -105,9 +110,17 @@ def step_to_target(actor, target):
     if path:
         actor.path_find = path
         actor.path_find_runs = int(runs / 2) if runs > 5 else runs
-        next_step = path.pop(0)
-
-        return move_to(actor, *next_step)
+        next_x, next_y = path.pop(0)
+        success = move_to(actor, next_x, next_y)
+        if not success or actor.x != next_x or actor.y != next_y:
+            actor.path_find = None
+            actor.path_find_runs = None
+            target_dx, target_dy = utils.get_actor_delta(actor, target)
+            sx = utils.sign(target_dx)
+            sy = utils.sign(target_dy)
+            ax, ay = avoid_obstacle(actor, target, sx, sy)
+            return move_to(actor, actor.x + ax, actor.y + ay)
+        return success
     else:
         actor.level.remove_tile(tx, ty)
         actor.game.add_message(actor.name + " digs through rock.")
@@ -115,7 +128,14 @@ def step_to_target(actor, target):
 
 
 def path_find(actor, target):
-    grid = Grid(matrix=actor.level.path_grid)
+    level = actor.level
+    path_grid = actor.level.path_grid.copy()
+    for other_actor in level.actors:
+        if other_actor.blocking:
+            if other_actor is not actor and other_actor is not target:
+                path_grid[other_actor.x][other_actor.y] = 1
+
+    grid = Grid(matrix=path_grid)
     start = grid.node(actor.x, actor.y)
     end = grid.node(target.x, target.y)
     finder = AStarFinder(diagonal_movement=DiagonalMovement.always)

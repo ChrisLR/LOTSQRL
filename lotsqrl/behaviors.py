@@ -77,7 +77,7 @@ class BurrowIntoCocoon(Behavior):
 
     @classmethod
     def _get_target(cls, actor):
-        spiders = actor.level.get_actors_by_team(Team.QueenSpider)
+        spiders = actor.level.get_actors_by_team(Team.SpiderQueen)
         cocoons = [c for c in spiders if c.actor_type == ActorTypes.Cocoon and c.burrowed is False]
         if not cocoons:
             return None

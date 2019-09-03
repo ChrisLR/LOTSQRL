@@ -1,6 +1,5 @@
 import random
 import sys
-import time
 
 from bearlibterminal import terminal
 
@@ -81,22 +80,19 @@ class Game(object):
                         self.should_restart = True
                         return
 
-                time.sleep(0.5)
-
-            if player.moved or player.dead:
-                for actor in level.actors.copy():
-                    if actor is player:
-                        continue
-                    actor.act()
-
-            turn = self.turn
-            if turn >= 10 and turn % 10 == 0 and not boss.dead and not player.dead:
-                self.spawn_goblins(turn)
-
             if player.moved:
                 player.moved = False
                 if not boss.dead:
                     self.turn += 1
+                for actor in level.actors.copy():
+                    if actor is player:
+                        continue
+                    if actor.level is not None:
+                        actor.act()
+
+            turn = self.turn
+            if turn >= 10 and turn % 10 == 0 and not boss.dead and not player.dead:
+                self.spawn_goblins(turn)
 
             if boss.dead and not level.get_actors_by_team(Team.Goblin):
                 self.game_won = True

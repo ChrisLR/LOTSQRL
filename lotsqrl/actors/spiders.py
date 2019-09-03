@@ -15,7 +15,7 @@ class Egg(Actor):
     actor_type = ActorTypes.Egg
 
     def __init__(self, game, x, y):
-        super().__init__(game, 1, "0", "Egg", x, y, team=Team.QueenSpider)
+        super().__init__(game, 1, "0", "Egg", x, y, team=Team.SpiderQueen)
         self.hatch_countdown = 10
         self.display_priority = 9
 
@@ -33,7 +33,7 @@ class Cocoon(Actor):
     actor_type = ActorTypes.Cocoon
 
     def __init__(self, game, x, y):
-        super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.QueenSpider)
+        super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.SpiderQueen)
         self.hatch_countdown = 10
         self.display_priority = 9
         self.burrowed = False
@@ -96,7 +96,7 @@ class Spiderling(Arachnid):
     bite_damage_range = (1, 4)
 
     def __init__(self, game, x, y):
-        super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.QueenSpider)
+        super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.SpiderQueen)
         self.target = None
         self.display_priority = 8
         self.max_hp = 8
@@ -110,7 +110,7 @@ class Spiderling(Arachnid):
             return
 
         next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
-        next_behavior.execute(self)
+        return next_behavior.execute(self)
 
     def bump(self, target):
         if target.actor_type == ActorTypes.Cocoon and not target.burrowed:
@@ -137,7 +137,7 @@ class Spider(Arachnid):
     bite_damage_range = (2, 8)
 
     def __init__(self, game, x, y):
-        super().__init__(game, 10, "S", "Spider", x, y, team=Team.QueenSpider)
+        super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
         self.target = None
         self.display_priority = 8
         self.max_hp = 20
@@ -151,7 +151,7 @@ class Spider(Arachnid):
             return
 
         next_behavior = min(self.behaviors, key=lambda b: b.get_priority(self))
-        next_behavior.execute(self)
+        return next_behavior.execute(self)
 
     def bump(self, target):
         if target is self.target or target.team == Team.Goblin:
@@ -164,14 +164,14 @@ class Spider(Arachnid):
 
 
 class SpiderQueen(Arachnid):
-    actor_type = ActorTypes.QueenSpider
+    actor_type = ActorTypes.SpiderQueen
     bite_damage_range = (4, 8)
     egg_delay = 11
     jump_delay = 6
     web_delay = 20
 
     def __init__(self, game, x, y):
-        super().__init__(game, 20, "@", "You", x, y, team=Team.QueenSpider)
+        super().__init__(game, 800, "@", "You", x, y, team=Team.SpiderQueen)
         self.egg_cool_down = 0
         self.jump_cool_down = 0
         self.web_cooldown = 0
@@ -179,7 +179,7 @@ class SpiderQueen(Arachnid):
         self.score = Score()
         self.moved = False
         self.display_priority = 1
-        self.max_hp = 40
+        self.max_hp = 800
 
     def act(self):
         if self.stunned > 0:
