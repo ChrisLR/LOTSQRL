@@ -2,7 +2,7 @@ from enum import IntEnum
 
 
 class Team(IntEnum):
-    QueenSpider = 0
+    SpiderQueen = 0
     Goblin = 1
     Corpse = 2
 
@@ -13,6 +13,6 @@ class ActorTypes(IntEnum):
     Cocoon = 2
     Spiderling = 3
     Spider = 4
-    QueenSpider = 5
+    SpiderQueen = 5
     Goblin = 6
     GoblinChief = 7
