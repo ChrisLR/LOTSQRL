@@ -112,7 +112,7 @@ def step_to_target(actor, target):
         actor.path_find_runs = 5 if runs > 5 else runs
         next_x, next_y = path.pop(0)
         success = move_to(actor, next_x, next_y)
-        if not success or actor.x != next_x or actor.y != next_y:
+        if not success:
             actor.path_find = None
             actor.path_find_runs = None
             target_dx, target_dy = utils.get_actor_delta(actor, target)
@@ -129,6 +129,8 @@ def step_to_target(actor, target):
 
 def path_find(actor, target):
     level = actor.level
+    if not level:
+        return None, 0
 
     grid = Grid(matrix=level.path_grid)
     start = grid.node(actor.x, actor.y)
