@@ -238,7 +238,7 @@ class SpiderQueen(Arachnid):
 
         if self.score is not None:
             self.score.webs_fired += 1
-        self.web_cooldown = 20
+        self.web_cooldown = self.web_delay
 
         for i in range(10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
