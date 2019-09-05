@@ -90,7 +90,7 @@ def step_to_target(actor, target):
     if actor.path_find:
         next_x, next_y = actor.path_find.pop(0)
         success = move_to(actor, next_x, next_y)
-        if not success or actor.x != next_x or actor.y != next_y:
+        if not success:
             actor.path_find = None
             actor.path_find_runs = None
         else:
