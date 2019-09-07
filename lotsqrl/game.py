@@ -1,3 +1,4 @@
+import pathlib
 import random
 import sys
 
@@ -10,11 +11,12 @@ from lotsqrl.teams import Team
 
 
 class Options(object):
-    def __init__(self):
+    def __init__(self, **options):
         self.automata_steps = 4
         self.graphical_tiles = True
         self.map_width = 25
         self.map_height = 25
+        self.graphics_base_dir = pathlib.Path(options.get("graphics_base_dir", "graphics"))
 
 
 class ScreenInfo(object):

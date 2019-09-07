@@ -48,20 +48,20 @@ class Camera(object):
         if not self.options.graphical_tiles:
             return
 
-        terminal.set("tile 0x28: graphics\\cocoon.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x30: graphics\\egg.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x67: graphics\\goblin.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x47: graphics\\goblin-chief.png, size=16x16, spacing=2x1")
-        terminal.set("tile 0x2e: graphics\\floor2.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x25: graphics\\skull.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x53: graphics\\spider.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x73: graphics\\spiderling.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x40: graphics\\spiderqueen.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x23: graphics\\wall2.png, size=16x16, spacing=2x1;")
-        terminal.set("tile 0x2f: graphics\\webdiagonal2.png, size=16x16, spacing=2x1")
-        terminal.set("tile 0x5c: graphics\\webdiagonal.png, size=16x16, spacing=2x1")
-        terminal.set("tile 0x2d: graphics\\webhorizontal.png, size=16x16, spacing=2x1")
-        terminal.set("tile 0x7c: graphics\\webvertical.png, size=16x16, spacing=2x1")
+        terminal.set(f"tile 0x28: {self.options.graphics_base_dir/'cocoon.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x30: {self.options.graphics_base_dir/'egg.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x67: {self.options.graphics_base_dir/'goblin.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x47: {self.options.graphics_base_dir/'goblin-chief.png'}, size=16x16, spacing=2x1")
+        terminal.set(f"tile 0x2e: {self.options.graphics_base_dir/'floor2.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x25: {self.options.graphics_base_dir/'skull.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x53: {self.options.graphics_base_dir/'spider.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x73: {self.options.graphics_base_dir/'spiderling.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x40: {self.options.graphics_base_dir/'spiderqueen.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x23: {self.options.graphics_base_dir/'wall2.png'}, size=16x16, spacing=2x1;")
+        terminal.set(f"tile 0x2f: {self.options.graphics_base_dir/'webdiagonal2.png'}, size=16x16, spacing=2x1")
+        terminal.set(f"tile 0x5c: {self.options.graphics_base_dir/'webdiagonal.png'}, size=16x16, spacing=2x1")
+        terminal.set(f"tile 0x2d: {self.options.graphics_base_dir/'webhorizontal.png'}, size=16x16, spacing=2x1")
+        terminal.set(f"tile 0x7c: {self.options.graphics_base_dir/'webvertical.png'}, size=16x16, spacing=2x1")
 
     def set_sprite_font(self):
         if not self.options.graphical_tiles:
