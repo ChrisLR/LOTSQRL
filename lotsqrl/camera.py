@@ -1,4 +1,8 @@
+import os
+
 from bearlibterminal import terminal
+
+from lotsqrl import config
 
 
 class Camera(object):
@@ -47,21 +51,10 @@ class Camera(object):
     def load_sprites(self):
         if not self.options.graphical_tiles:
             return
-
-        terminal.set(f"tile 0x28: {self.options.graphics_base_dir/'cocoon.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x30: {self.options.graphics_base_dir/'egg.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x67: {self.options.graphics_base_dir/'goblin.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x47: {self.options.graphics_base_dir/'goblin-chief.png'}, size=16x16, spacing=2x1")
-        terminal.set(f"tile 0x2e: {self.options.graphics_base_dir/'floor2.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x25: {self.options.graphics_base_dir/'skull.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x53: {self.options.graphics_base_dir/'spider.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x73: {self.options.graphics_base_dir/'spiderling.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x40: {self.options.graphics_base_dir/'spiderqueen.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x23: {self.options.graphics_base_dir/'wall2.png'}, size=16x16, spacing=2x1;")
-        terminal.set(f"tile 0x2f: {self.options.graphics_base_dir/'webdiagonal2.png'}, size=16x16, spacing=2x1")
-        terminal.set(f"tile 0x5c: {self.options.graphics_base_dir/'webdiagonal.png'}, size=16x16, spacing=2x1")
-        terminal.set(f"tile 0x2d: {self.options.graphics_base_dir/'webhorizontal.png'}, size=16x16, spacing=2x1")
-        terminal.set(f"tile 0x7c: {self.options.graphics_base_dir/'webvertical.png'}, size=16x16, spacing=2x1")
+        
+        for char, sprite_name in sprite_chars:
+            sprite_path = os.path.join(config.graphics_folder, sprite_name)
+            terminal.set("{}: {}, size=16x16, spacing=2x1;".format(char, sprite_path))
 
     def set_sprite_font(self):
         if not self.options.graphical_tiles:
@@ -72,3 +65,21 @@ class Camera(object):
         if not self.options.graphical_tiles:
             return
         terminal.font("")
+
+
+sprite_chars = (
+        f'tile 0x28', 'cocoon.png',
+        f'tile 0x30', 'egg.png',
+        f'tile 0x67', 'goblin.png'
+        f'tile 0x47', 'goblin-chief.png',
+        f'tile 0x2e', 'floor2.png'
+        f'tile 0x25', 'skull.png'
+        f'tile 0x53', 'spider.png',
+        f'tile 0x73', 'spiderling.png'
+        f'tile 0x40', 'spiderqueen.png',
+        f'tile 0x23', 'wall2.png',
+        f'tile 0x2f', 'webdiagonal2.png',
+        f'tile 0x5c', 'webdiagonal.png',
+        f'tile 0x2d', 'webhorizontal.png',
+        f'tile 0x7c', 'webvertical.png',
+)
