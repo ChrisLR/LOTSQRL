@@ -3,14 +3,13 @@ class Tile(object):
     color = ""
 
     @classmethod
-    @property
-    def as_string(cls):
-        return "[color=red]%s[/color]" % cls.char
+    def ascii_str(cls):
+        return "[color=%s]%s[/color]" % (cls.color, cls.char)
 
 
 class CaveWall(Tile):
     char = "#"
-    color = "brown"
+    color = "#daa520"
 
 
 class CaveFloor(Tile):
