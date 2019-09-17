@@ -28,7 +28,7 @@ class Camera(object):
                 dx = (x * 2) - ox
                 if x * 2 > max_x or y > max_y or x * 2 < ox or y < oy:
                     continue
-                terminal.put(dx, dy + draw_offset_y, tile)
+                terminal.put(dx, dy + draw_offset_y, tile.char)
 
         terminal.layer(3)
         for actor in sorted(level.actors, key=lambda a: a.display_priority, reverse=True):

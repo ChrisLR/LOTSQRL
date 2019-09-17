@@ -1,18 +1,19 @@
 import sys
 
-import lotsqrl.game
-import lotsqrl.level as level
-
 from bearlibterminal import terminal
 
-from lotsqrl.game import Options, ScreenInfo
+from lotsqrl import tiles
+from lotsqrl.config import MainOptions, ScreenInfo
+from lotsqrl.game import Game
+from lotsqrl.level import Level
 from lotsqrl.scenes import mainmenu
 
 
-class TestGame(lotsqrl.game.Game):
+class TestGame(Game):
     def prepare(self):
-        self.level = level.Level(self.options.map_width, self.options.map_height)
-        self.level.path_grid = [[0 if c == "#" else 1 for c in row] for row in self.level.tiles]
+        self.level = Level(self.options.map_width, self.options.map_height)
+        self.level.path_grid = [[0 if c == tiles.CaveWall else 1 for c in row]
+                                for row in self.level.tiles]
         spawn_x, spawn_y = self.select_player_spawn()
         self.player.x = spawn_x
         self.player.y = spawn_y
@@ -78,7 +79,7 @@ class GameController:
             raise Exception("Terminal could not open.")
 
     def start(self):
-        options = Options(graphics_base_dir=self.graphics_base_dir)
+        options = MainOptions(graphics_base_dir=self.graphics_base_dir)
         self.prepare_terminal()
 
         closing = False

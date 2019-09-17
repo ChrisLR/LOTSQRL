@@ -4,7 +4,7 @@ import time
 
 from bearlibterminal import terminal
 
-from lotsqrl import behaviors, movement, utils
+from lotsqrl import behaviors, movement, tiles, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.scenes.helpfile import draw_help_file
 from lotsqrl.score import Score
@@ -242,7 +242,7 @@ class SpiderQueen(Arachnid):
 
         for i in range(10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
-            if self.level.get_tile(web_x, web_y) == "#":
+            if self.level.get_tile(web_x, web_y) == tiles.CaveWall:
                 self.game.add_message("Your web hits a wall, press a key to fling yourself.", show_now=True)
                 offset = utils.get_directional_pos()
                 if offset is None:
@@ -266,7 +266,7 @@ class SpiderQueen(Arachnid):
                         break
                     else:
                         tile = self.level.get_tile(gx, gy)
-                        if tile == "#":
+                        if tile == tiles.CaveWall:
                             self.x = gx - offset[0]
                             self.y = gy - offset[1]
                             break
@@ -324,7 +324,7 @@ class SpiderQueen(Arachnid):
                         break
                     else:
                         tile = self.level.get_tile(gx, gy)
-                        if tile == "#":
+                        if tile == tiles.CaveWall:
                             self.game.add_message("%s smashes against the wall!" % goblin.name)
                             goblin.stunned = 3
                             goblin.hp -= random.randint(4, 8)
@@ -404,7 +404,7 @@ class SpiderQueen(Arachnid):
         self.game.add_message("You are DEAD!")
 
     def jump_to(self, x, y):
-        if self.level.get_tile(x, y) == ".":
+        if self.level.get_tile(x, y) == tiles.CaveFloor:
             collides = self.level.get_actors_by_pos(x, y)
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
