@@ -1,6 +1,8 @@
 from bearlibterminal import terminal
 
-from lotsqrl.game import Game, Options, ScreenInfo
+
+from lotsqrl.game import Game
+from lotsqrl import config
 from lotsqrl.scenes import mainmenu
 
 
@@ -21,8 +23,7 @@ def prepare_terminal():
 
 
 if __name__ == '__main__':
-    options = Options()
-    screen_info = ScreenInfo()
+    options, screen_info = config.load_ini()
     prepare_terminal()
 
     closing = False

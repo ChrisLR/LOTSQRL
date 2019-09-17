@@ -1,4 +1,3 @@
-import pathlib
 import random
 import sys
 
@@ -8,29 +7,6 @@ from lotsqrl import actors, automata
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
 from lotsqrl.teams import Team
-
-
-class Options(object):
-    def __init__(self, **options):
-        self.automata_steps = 4
-        self.graphical_tiles = True
-        self.map_width = 25
-        self.map_height = 25
-        self.graphics_base_dir = pathlib.Path(options.get("graphics_base_dir", "graphics"))
-
-
-class ScreenInfo(object):
-    def __init__(self):
-        self.cellsize = "8x16"
-        self.title = "Lair of the Spider Queen RL"
-        self.screen_width = 100
-        self.screen_height = 50
-        self.message_log_height = 11
-        self.top_gui_height = 5
-        self.game_area_width = self.screen_width
-        self.game_area_height = self.screen_height - self.message_log_height - self.top_gui_height
-        self.half_width = int(self.screen_width / 2)
-        self.half_height = int(self.screen_height / 2)
 
 
 class Game(object):
@@ -55,7 +31,8 @@ class Game(object):
             terminal.refresh()
 
     def prepare(self):
-        self.level = automata.generate_map(self.options.map_width, self.options.map_height, self.options.automata_steps)
+        automata_steps = 4  # Usually gives a nice layout
+        self.level = automata.generate_map(self.options.map_width, self.options.map_height, automata_steps)
         spawn_x, spawn_y = self.select_player_spawn()
         self.player.x = spawn_x
         self.player.y = spawn_y
