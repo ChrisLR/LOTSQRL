@@ -7,6 +7,15 @@ graphics_folder = os.path.join(game_root, "graphics")
 config_file_path = os.path.join(game_root, 'config.ini')
 
 
+def parse_bool(value):
+    if value:
+        if value is True:
+            return True
+        elif value.lower() in ("true", "yes"):
+            return True
+    return False
+
+
 class OptionField(object):
     def __init__(self, name, default, option_type):
         self.name = name
@@ -23,13 +32,16 @@ class ConfigurableOptions(object):
             setattr(self, field.name, field.option_type(value))
 
     def export(self):
-        return {field: getattr(self, field.name, field.default) for field in self.fields}
+        return {
+            field.name: getattr(self, field.name, field.default)
+            for field in self.fields
+        }
 
 
 class MainOptions(ConfigurableOptions):
     fields = (
         OptionField('automata_steps', 4, int),
-        OptionField('graphical_tiles', True, bool),
+        OptionField('graphical_tiles', True, parse_bool),
         OptionField('map_width', 25, int),
         OptionField('map_height', 25, int),
     )
@@ -50,12 +62,13 @@ class ScreenInfo(ConfigurableOptions):
         self.screen_height = 0
         super().__init__(**options)
         self.title = "Lair of the Spider Queen RL"
-        self.message_log_height = 11
-        self.top_gui_height = 5
         self.game_area_width = self.screen_width
-        self.game_area_height = self.screen_height - self.message_log_height - self.top_gui_height
+        self.game_area_height = (
+                self.screen_height - self.message_log_height - self.top_gui_height)
         self.half_width = int(self.screen_width / 2)
         self.half_height = int(self.screen_height / 2)
+        self.message_log_height = 11
+        self.top_gui_height = 5
 
 
 def load_ini():
