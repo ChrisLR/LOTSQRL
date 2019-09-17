@@ -68,18 +68,18 @@ class Camera(object):
 
 
 sprite_chars = (
-        f'tile 0x28', 'cocoon.png',
-        f'tile 0x30', 'egg.png',
-        f'tile 0x67', 'goblin.png'
-        f'tile 0x47', 'goblin-chief.png',
-        f'tile 0x2e', 'floor2.png'
-        f'tile 0x25', 'skull.png'
-        f'tile 0x53', 'spider.png',
-        f'tile 0x73', 'spiderling.png'
-        f'tile 0x40', 'spiderqueen.png',
-        f'tile 0x23', 'wall2.png',
-        f'tile 0x2f', 'webdiagonal2.png',
-        f'tile 0x5c', 'webdiagonal.png',
-        f'tile 0x2d', 'webhorizontal.png',
-        f'tile 0x7c', 'webvertical.png',
+    (f'tile 0x28', 'cocoon.png'),
+    (f'tile 0x30', 'egg.png'),
+    (f'tile 0x67', 'goblin.png'),
+    (f'tile 0x47', 'goblin-chief.png'),
+    (f'tile 0x2e', 'floor2.png'),
+    (f'tile 0x25', 'skull.png'),
+    (f'tile 0x53', 'spider.png'),
+    (f'tile 0x73', 'spiderling.png'),
+    (f'tile 0x40', 'spiderqueen.png'),
+    (f'tile 0x23', 'wall2.png'),
+    (f'tile 0x2f', 'webdiagonal2.png'),
+    (f'tile 0x5c', 'webdiagonal.png'),
+    (f'tile 0x2d', 'webhorizontal.png'),
+    (f'tile 0x7c', 'webvertical.png'),
 )
