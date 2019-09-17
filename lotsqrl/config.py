@@ -40,7 +40,6 @@ class ConfigurableOptions(object):
 
 class MainOptions(ConfigurableOptions):
     fields = (
-        OptionField('automata_steps', 4, int),
         OptionField('graphical_tiles', True, parse_bool),
         OptionField('map_width', 25, int),
         OptionField('map_height', 25, int),
@@ -63,12 +62,11 @@ class ScreenInfo(ConfigurableOptions):
         super().__init__(**options)
         self.title = "Lair of the Spider Queen RL"
         self.game_area_width = self.screen_width
-        self.game_area_height = (
-                self.screen_height - self.message_log_height - self.top_gui_height)
         self.half_width = int(self.screen_width / 2)
         self.half_height = int(self.screen_height / 2)
         self.message_log_height = 11
         self.top_gui_height = 5
+        self.game_area_height = self.screen_height - self.message_log_height - self.top_gui_height
 
 
 def load_ini():

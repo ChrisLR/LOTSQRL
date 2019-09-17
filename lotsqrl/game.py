@@ -31,7 +31,8 @@ class Game(object):
             terminal.refresh()
 
     def prepare(self):
-        self.level = automata.generate_map(self.options.map_width, self.options.map_height, self.options.automata_steps)
+        automata_steps = 4  # Usually gives a nice layout
+        self.level = automata.generate_map(self.options.map_width, self.options.map_height, automata_steps)
         spawn_x, spawn_y = self.select_player_spawn()
         self.player.x = spawn_x
         self.player.y = spawn_y
