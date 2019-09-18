@@ -31,6 +31,7 @@ class Egg(Actor):
 
 class Cocoon(Actor):
     actor_type = ActorTypes.Cocoon
+    ascii_color = '#7fffd4'
 
     def __init__(self, game, x, y):
         super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.SpiderQueen)
@@ -50,6 +51,7 @@ class Cocoon(Actor):
 
 
 class Arachnid(Actor):
+    ascii_color = "red"
     bite_damage_range = (1, 4)
 
     def bite(self, target):

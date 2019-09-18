@@ -2,6 +2,8 @@ from lotsqrl.teams import Team, ActorTypes
 
 
 class GameObject(object):
+    ascii_color = "white"
+
     def __init__(self, game, display_char="", name="", x=0, y=0, team=None):
         self.game = game
         self.display_char = display_char
@@ -14,6 +16,9 @@ class GameObject(object):
         self.is_player = False
         self.display_priority = 10
         self.score = None
+
+    def ascii_str(self):
+        return "[color=%s]%s[/color]" % (self.ascii_color, self.display_char)
 
 
 class Actor(GameObject):

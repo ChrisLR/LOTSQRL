@@ -19,6 +19,7 @@ class Camera(object):
         ox, oy = (self.focus_on.x * 2) - half_width, self.focus_on.y - half_height
         max_x, max_y = ox + screen_info.game_area_width, oy + screen_info.game_area_height
         level = self.focus_on.level
+        graphics = self.options.graphical_tiles
 
         terminal.layer(1)
         draw_offset_y = screen_info.top_gui_height + 1
@@ -29,7 +30,8 @@ class Camera(object):
                 if x * 2 > max_x or y > max_y or x * 2 < ox or y < oy:
                     continue
 
-                if self.options.graphical_tiles is True:
+                # TODO Stop checking graphics for every draw
+                if graphics is True:
                     terminal.put(dx, dy + draw_offset_y, tile.char)
                 else:
                     terminal.printf(dx, dy + draw_offset_y, tile.ascii_str())
@@ -41,7 +43,13 @@ class Camera(object):
 
             if actor.x > max_x or actor.y > max_y or actor.x < ox or actor.y < oy:
                 continue
-            terminal.put(dx, dy + draw_offset_y, actor.display_char)
+
+            # TODO Stop checking graphics for every draw
+            if graphics is True:
+                terminal.put(dx, dy + draw_offset_y, actor.display_char)
+            else:
+                terminal.printf(dx, dy + draw_offset_y, actor.ascii_str())
+
         self.reset_font()
 
     def transform(self, x, y):
