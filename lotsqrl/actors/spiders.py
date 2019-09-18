@@ -278,13 +278,16 @@ class SpiderQueen(Arachnid):
                 return True
 
             web_char = utils.direction_offsets_char.get(offset)
-            terminal.layer(2)
+            graphics = self.game.options.graphical_tiles
+            if graphics:
+                terminal.layer(2)
             # TODO Improve this way to draw something/animation now
             camera = self.game.camera
             camera.set_sprite_font()
             terminal.put(*camera.transform(web_x, web_y), web_char)
             camera.reset_font()
-            terminal.layer(3)
+            if graphics:
+                terminal.layer(3)
             terminal.refresh()
             time.sleep(0.05)
             goblins = self.level.get_actors_by_pos(web_x, web_y, team=Team.Goblin)

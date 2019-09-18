@@ -1,17 +1,17 @@
 class Tile(object):
-    char = ""
+    display_char = ""
     color = ""
 
     @classmethod
     def ascii_str(cls):
-        return "[color=%s]%s[/color]" % (cls.color, cls.char)
+        return "[color=%s]%s[/color]" % (cls.color, cls.display_char)
 
 
 class CaveWall(Tile):
-    char = "#"
+    display_char = "#"
     color = "#daa520"
 
 
 class CaveFloor(Tile):
-    char = "."
+    display_char = "."
     color = "gray"

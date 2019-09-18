@@ -20,8 +20,11 @@ class Camera(object):
         max_x, max_y = ox + screen_info.game_area_width, oy + screen_info.game_area_height
         level = self.focus_on.level
         graphics = self.options.graphical_tiles
+        draw_method = self._draw_graphic if graphics else self._draw_ascii
 
-        terminal.layer(1)
+        if graphics:
+            terminal.layer(1)
+
         draw_offset_y = screen_info.top_gui_height + 1
         for y, row_tiles in enumerate(level.tiles):
             dy = y - oy
@@ -30,13 +33,10 @@ class Camera(object):
                 if x * 2 > max_x or y > max_y or x * 2 < ox or y < oy:
                     continue
 
-                # TODO Stop checking graphics for every draw
-                if graphics is True:
-                    terminal.put(dx, dy + draw_offset_y, tile.char)
-                else:
-                    terminal.printf(dx, dy + draw_offset_y, tile.ascii_str())
+                draw_method(dx, dy + draw_offset_y, tile)
 
-        terminal.layer(3)
+        if graphics:
+            terminal.layer(3)
         for actor in sorted(level.actors, key=lambda a: a.display_priority, reverse=True):
             dx = (actor.x * 2) - ox
             dy = actor.y - oy
@@ -44,11 +44,7 @@ class Camera(object):
             if actor.x > max_x or actor.y > max_y or actor.x < ox or actor.y < oy:
                 continue
 
-            # TODO Stop checking graphics for every draw
-            if graphics is True:
-                terminal.put(dx, dy + draw_offset_y, actor.display_char)
-            else:
-                terminal.printf(dx, dy + draw_offset_y, actor.ascii_str())
+            draw_method(dx, dy + draw_offset_y, actor)
 
         self.reset_font()
 
@@ -77,6 +73,12 @@ class Camera(object):
         if not self.options.graphical_tiles:
             return
         terminal.font("")
+
+    def _draw_graphic(self, x, y, game_object):
+        terminal.put(x, y, game_object.display_char)
+
+    def _draw_ascii(self, x, y, game_object):
+        terminal.printf(x, y, game_object.ascii_str())
 
 
 sprite_chars = (
