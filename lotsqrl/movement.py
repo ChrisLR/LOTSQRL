@@ -5,7 +5,7 @@ from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 
-from lotsqrl import utils
+from lotsqrl import tiles, utils
 
 
 def avoid_obstacle(actor, target, offset_x, offset_y):
@@ -56,7 +56,7 @@ def move_to(actor, x, y, bump=True):
     if not level:
         return
 
-    if level.get_tile(x, y) == ".":
+    if level.get_tile(x, y) == tiles.CaveFloor:
         collides = actor.level.get_actors_by_pos(x, y)
         collision = next((collide for collide in collides if collide is not actor and collide.blocking), None)
         if collision is not None and bump is True:

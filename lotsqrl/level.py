@@ -1,18 +1,21 @@
+from lotsqrl import tiles
+
+
 class Level(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.actors = []
         self.actors_by_team = {}
-        self.tiles = [["." for _ in range(width)] for _ in range(height)]
+        self.tiles = [[tiles.CaveFloor for _ in range(width)] for _ in range(height)]
         self.spawns = []
         for i in range(width):
-            self.tiles[0][i] = "#"
-            self.tiles[height - 1][i] = "#"
+            self.tiles[0][i] = tiles.CaveWall
+            self.tiles[height - 1][i] = tiles.CaveWall
 
         for i in range(height):
-            self.tiles[i][0] = "#"
-            self.tiles[i][width - 1] = "#"
+            self.tiles[i][0] = tiles.CaveWall
+            self.tiles[i][width - 1] = tiles.CaveWall
 
         self.path_grid = None
 
@@ -50,5 +53,5 @@ class Level(object):
         return self.actors_by_team.get(team, None)
 
     def remove_tile(self, x, y):
-        self.tiles[y][x] = "."
+        self.tiles[y][x] = tiles.CaveFloor
         self.path_grid[y][x] = 1

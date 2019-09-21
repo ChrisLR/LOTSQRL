@@ -7,6 +7,7 @@ from lotsqrl.teams import Team, ActorTypes
 
 class Goblin(Actor):
     actor_type = ActorTypes.Goblin
+    ascii_color = 'green'
 
     def __init__(self, game, x, y):
         super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
@@ -40,6 +41,7 @@ class Goblin(Actor):
 
 class GoblinChief(Actor):
     actor_types = ActorTypes.GoblinChief
+    ascii_color = 'green'
 
     def __init__(self, game, x, y):
         super().__init__(game, 50, "G", "Goblin Chief", x, y, team=Team.Goblin)

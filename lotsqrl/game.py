@@ -3,7 +3,7 @@ import sys
 
 from bearlibterminal import terminal
 
-from lotsqrl import actors, automata
+from lotsqrl import actors, automata, tiles
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
 from lotsqrl.teams import Team
@@ -99,14 +99,14 @@ class Game(object):
     def select_player_spawn(self):
         level = self.level
         middle_x, middle_y = int(level.width / 2), int(level.height / 2)
-        if level.get_tile(middle_x, middle_y) == ".":
+        if level.get_tile(middle_x, middle_y) == tiles.CaveFloor:
             return middle_x, middle_y
 
         tries = 20
         while tries:
             middle_x += random.randint(-10, 10)
             middle_y += random.randint(-10, 10)
-            if level.get_tile(middle_x, middle_y) == ".":
+            if level.get_tile(middle_x, middle_y) == tiles.CaveFloor:
                 return middle_x, middle_y
             tries -= 1
 
