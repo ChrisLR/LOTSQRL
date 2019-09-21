@@ -242,7 +242,7 @@ class SpiderQueen(Arachnid):
             self.score.webs_fired += 1
         self.web_cooldown = self.web_delay
 
-        for i in range(10):
+        for i in range(1, 10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
             if self.level.get_tile(web_x, web_y) == tiles.CaveWall:
                 self.game.add_message("Your web hits a wall, press a key to fling yourself.", show_now=True)
@@ -277,19 +277,6 @@ class SpiderQueen(Arachnid):
                     self.y = gy
                 return True
 
-            web_char = utils.direction_offsets_char.get(offset)
-            graphics = self.game.options.graphical_tiles
-            if graphics:
-                terminal.layer(2)
-            # TODO Improve this way to draw something/animation now
-            camera = self.game.camera
-            camera.set_sprite_font()
-            terminal.put(*camera.transform(web_x, web_y), web_char)
-            camera.reset_font()
-            if graphics:
-                terminal.layer(3)
-            terminal.refresh()
-            time.sleep(0.05)
             goblins = self.level.get_actors_by_pos(web_x, web_y, team=Team.Goblin)
             if goblins:
                 goblin = goblins[0]
@@ -343,6 +330,20 @@ class SpiderQueen(Arachnid):
                     goblin.y = gy
 
                 return True
+            else:
+                web_char = utils.direction_offsets_char.get(offset)
+                graphics = self.game.options.graphical_tiles
+                if graphics:
+                    terminal.layer(2)
+                # TODO Improve this way to draw something/animation now
+                camera = self.game.camera
+                camera.set_sprite_font()
+                terminal.put(*camera.transform(web_x, web_y), web_char)
+                camera.reset_font()
+                if graphics:
+                    terminal.layer(3)
+                terminal.refresh()
+                time.sleep(0.05)
         else:
             self.game.add_message("There is no one to web there.")
 
