@@ -6,14 +6,12 @@ from lotsqrl import utils
 class Action(object):
     name = ""
 
-    def __init__(self, actor):
-        self.actor = actor
-        self.game = actor.game
-
-    def can_execute(self, target):
+    def can_execute(self, actor, target):
         """
         Called when an action may be executed.
         Implementation is responsible for messages.
+        :param actor: The Executing Actor
+        :type actor: lotsqrl.actors.base.Actor
         :param target: The Targeted Actor
         :type target: lotsqrl.actors.base.Actor
         :return: Tells if an action is executable or not
@@ -21,10 +19,12 @@ class Action(object):
         """
         pass
 
-    def execute(self, target):
+    def execute(self, actor, target):
         """
         Called when an action is executing.
         Implementation is responsible for messages.
+        :param actor: The Executing Actor
+        :type actor: lotsqrl.actors.base.Actor
         :param target: The Targeted Actor
         :type target: lotsqrl.actors.base.Actor
         :return: Tells if the action happened, a round elapses when True
@@ -37,34 +37,33 @@ class MeleeAttack(Action):
     base_damage = (1, 1)
     base_reach = 1
 
-    def __init__(self, actor, damage=None, reach=None):
-        super().__init__(actor)
-        self.actor = actor
+    def __init__(self, damage=None, reach=None):
+        super().__init__()
         self.damage = damage or self.base_damage
         self.reach = reach or self.base_reach
 
-    def can_execute(self, target):
-        distance = utils.get_distance(self.actor, target)
+    def can_execute(self, actor, target):
+        distance = utils.get_distance(actor, target)
         if distance <= self.reach:
             return True
         return False
 
-    def execute(self, target):
+    def execute(self, actor, target):
         # TODO This is where hit rolls would occur
         hit = True
         if hit:
-            self.on_hit(target)
+            self.on_hit(actor, target)
         else:
-            self.on_miss(target)
+            self.on_miss(actor, target)
 
         return True
 
-    def on_hit(self, target):
+    def on_hit(self, actor, target):
         damage_min, damage_max = self.damage
         damage = random.randint(damage_min, damage_max)
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
 
-    def on_miss(self, target):
+    def on_miss(self, actor, target):
         pass

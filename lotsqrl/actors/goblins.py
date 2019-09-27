@@ -1,6 +1,6 @@
 import random
 
-from lotsqrl import movement, utils
+from lotsqrl import actions, movement, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.teams import Team, ActorTypes
 
@@ -8,6 +8,7 @@ from lotsqrl.teams import Team, ActorTypes
 class Goblin(Actor):
     actor_type = ActorTypes.Goblin
     ascii_color = 'green'
+    base_actions = (actions.Stab(),)
 
     def __init__(self, game, x, y):
         super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
@@ -26,17 +27,8 @@ class Goblin(Actor):
 
     def bump(self, target):
         if not target.team == Team.Goblin:
-            return self.stab(target)
+            return self.actions.try_execute("stab", target)
         return False
-
-    def stab(self, target):
-        self.game.add_message(self.name + " stabs %s!" % target.name)
-        damage = random.randint(1, 4)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-
-        return True
 
 
 class GoblinChief(Actor):
