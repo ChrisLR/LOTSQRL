@@ -64,6 +64,25 @@ class MeleeAttack(Action):
         target.hp -= damage
         if target.hp <= 0:
             target.on_death()
+            if actor.score is not None:
+                actor.score.kills += 1
 
     def on_miss(self, actor, target):
         pass
+
+
+class TouchAction(Action):
+    base_reach = 1
+
+    def __init__(self, reach=None):
+        super().__init__()
+        self.reach = reach or self.base_reach
+
+    def can_execute(self, actor, target):
+        distance = utils.get_distance(actor, target)
+        if distance <= self.reach:
+            return True
+        return False
+
+    def execute(self, actor, target):
+        return True

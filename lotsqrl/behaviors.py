@@ -31,7 +31,7 @@ class Attack(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.bite(target)
+            return actor.actions.try_execute("bite", target)
         else:
             return movement.step_to_target(actor, target)
 
@@ -71,7 +71,7 @@ class BurrowIntoCocoon(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.burrow(target)
+            return actor.actions.try_execute("burrow_egg", target)
         else:
             return movement.step_to_target(actor, target)
 

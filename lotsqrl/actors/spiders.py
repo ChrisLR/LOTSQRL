@@ -4,7 +4,7 @@ import time
 
 from bearlibterminal import terminal
 
-from lotsqrl import behaviors, movement, tiles, utils
+from lotsqrl import actions, behaviors, movement, tiles, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.scenes.helpfile import draw_help_file
 from lotsqrl.score import Score
@@ -52,27 +52,8 @@ class Cocoon(Actor):
 
 class Arachnid(Actor):
     ascii_color = "red"
+    base_actions = (actions.Bite())
     bite_damage_range = (1, 4)
-
-    def bite(self, target):
-        if target.team == self.team:
-            return False
-
-        if self.is_player:
-            self.game.add_message("You bite %s!" % target.name)
-        else:
-            self.game.add_message("%s bites %s!" % (self.name, target.name))
-        damage = random.randint(*self.bite_damage_range)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-            if self.score is not None:
-                self.score.kills += 1
-
-        return True
-
-    def burrow(self, target):
-        pass
 
     def eat(self, target):
         if self.score is not None:
@@ -94,8 +75,8 @@ class Arachnid(Actor):
 
 class Spiderling(Arachnid):
     actor_type = ActorTypes.Spiderling
+    base_actions = (actions.Bite(), actions.BurrowEgg())
     behaviors = [behaviors.Attack, behaviors.BurrowIntoCocoon, behaviors.EatCorpse]
-    bite_damage_range = (1, 4)
 
     def __init__(self, game, x, y):
         super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.SpiderQueen)
@@ -116,21 +97,15 @@ class Spiderling(Arachnid):
 
     def bump(self, target):
         if target.actor_type == ActorTypes.Cocoon and not target.burrowed:
-            return self.burrow(target)
+            return self.actions.try_execute("burrow_egg", target)
 
         if target is self.target or target.team == Team.Goblin:
             if target.dead:
                 return self.eat(target)
             else:
-                return self.bite(target)
+                return self.actions.try_execute("bite", target)
 
         return False
-
-    def burrow(self, target):
-        self.game.add_message("%s burrows into %s!" % (self.name, target.name))
-        target.burrowed = True
-        self.level.remove_actor(self)
-        return True
 
 
 class Spider(Arachnid):

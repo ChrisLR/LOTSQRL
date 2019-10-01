@@ -1,7 +1,7 @@
 class Action(object):
     def __init__(self, host, base_actions):
         self.host = host
-        self.actions = {action.name: action for action in base_actions.items()}
+        self.actions = {action.name: action for action in base_actions}
 
     def can_execute(self, name, target):
         """Confirms if an action CAN execute
