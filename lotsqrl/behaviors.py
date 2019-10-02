@@ -104,7 +104,7 @@ class EatCorpse(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.eat(target)
+            return actor.actions.try_execute("eat_corpse", target)
         else:
             return movement.step_to_target(actor, target)
 

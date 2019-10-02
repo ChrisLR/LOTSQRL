@@ -52,7 +52,7 @@ class Cocoon(Actor):
 
 class Arachnid(Actor):
     ascii_color = "red"
-    base_actions = (actions.Bite())
+    base_actions = (actions.Bite(), actions.EatCorpse())
     bite_damage_range = (1, 4)
 
     def eat(self, target):
@@ -75,7 +75,7 @@ class Arachnid(Actor):
 
 class Spiderling(Arachnid):
     actor_type = ActorTypes.Spiderling
-    base_actions = (actions.Bite(), actions.BurrowEgg())
+    base_actions = (actions.Bite(), actions.BurrowEgg(), actions.EatCorpse())
     behaviors = [behaviors.Attack, behaviors.BurrowIntoCocoon, behaviors.EatCorpse]
 
     def __init__(self, game, x, y):
@@ -100,9 +100,7 @@ class Spiderling(Arachnid):
             return self.actions.try_execute("burrow_egg", target)
 
         if target is self.target or target.team == Team.Goblin:
-            if target.dead:
-                return self.eat(target)
-            else:
+            if not target.dead:
                 return self.actions.try_execute("bite", target)
 
         return False
@@ -110,8 +108,8 @@ class Spiderling(Arachnid):
 
 class Spider(Arachnid):
     actor_type = ActorTypes.Spider
+    base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse())
     behaviors = [behaviors.Attack, behaviors.EatCorpse]
-    bite_damage_range = (2, 8)
 
     def __init__(self, game, x, y):
         super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
@@ -132,17 +130,15 @@ class Spider(Arachnid):
 
     def bump(self, target):
         if target is self.target or target.team == Team.Goblin:
-            if target.dead:
-                return self.eat(target)
-            else:
-                return self.bite(target)
+            if not target.dead:
+                return self.actions.try_execute("bite", target)
 
         return False
 
 
 class SpiderQueen(Arachnid):
     actor_type = ActorTypes.SpiderQueen
-    bite_damage_range = (4, 8)
+    base_actions = (actions.Bite(damage=(4, 8)), actions.EatCorpse())
     egg_delay = 11
     jump_delay = 6
     web_delay = 20
@@ -200,7 +196,8 @@ class SpiderQueen(Arachnid):
                 self.web_cooldown -= 1
 
     def bump(self, target):
-        return self.bite(target)
+        if target.team == Team.Goblin:
+            return self.actions.try_execute("bite", target)
 
     def fire_web(self):
         if self.web_cooldown > 0:

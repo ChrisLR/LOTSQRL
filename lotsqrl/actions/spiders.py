@@ -34,3 +34,39 @@ class BurrowEgg(TouchAction):
         actor.level.remove_actor(actor)
 
         return True
+
+
+class EatCorpse(TouchAction):
+    name = "eat_corpse"
+    base_heal = 5
+
+    def __init__(self, heal=None, reach=None):
+        super().__init__(reach)
+        self.heal = heal or self.base_heal
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            return base_result
+
+        if target.actor_type != ActorTypes.Corpse:
+            return False
+
+        return True
+
+    def execute(self, actor, target):
+        if actor.score is not None:
+            actor.score.corpses_eaten += 1
+
+        if actor.is_player:
+            actor.game.add_message("You eat %s !" % target.name)
+        else:
+            actor.game.add_message("%s eats %s !" % (self.name, target.name))
+        actor.level.remove_actor(target)
+        actor.target = None
+        if actor.hp + self.heal <= actor.max_hp:
+            actor.hp += self.heal
+        else:
+            actor.hp = actor.max_hp
+
+        return True
