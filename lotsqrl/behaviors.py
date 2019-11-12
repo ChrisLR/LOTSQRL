@@ -130,6 +130,9 @@ class EatCorpse(Behavior):
         if not corpses:
             return Priority.Never
 
+        if not actor.level.get_actors_by_team(Team.Goblin):
+            return Priority.High
+
         closest_corpse = utils.get_closest_actor(actor, corpses)
         dist = utils.get_distance(actor, closest_corpse)
 
@@ -137,7 +140,7 @@ class EatCorpse(Behavior):
         quarter_hp = actor.max_hp / 4
         if hp >= quarter_hp * 3:
             if dist <= 1:
-                return Priority.Medium
+                return Priority.High
             else:
                 return Priority.VeryLow
         elif hp >= quarter_hp * 2:
@@ -149,3 +152,35 @@ class EatCorpse(Behavior):
                 return Priority.Low
         else:
             return Priority.High
+
+
+class JumpOnEnemy(Behavior):
+    @classmethod
+    def execute(cls, actor, target=None):
+        if target is None:
+            target = cls._get_target(actor)
+            if target is None:
+                return False
+
+        return actor.actions.try_execute("jump", target)
+
+    @classmethod
+    def _get_target(cls, actor):
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if not enemies:
+            return Priority.Never
+
+        enemies = (enemy for enemy in enemies if actor.actions.can_execute("jump", enemy))
+        valid_enemy = next(enemies, None)
+
+        return valid_enemy
+
+    @classmethod
+    def get_priority(cls, actor):
+        if actor.cooldowns.get("jump"):
+            return Priority.Never
+
+        valid_enemy = cls._get_target(actor)
+        if valid_enemy:
+            return Priority.Extreme
+        return Priority.Never

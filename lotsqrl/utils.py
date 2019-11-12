@@ -1,4 +1,6 @@
 from bearlibterminal import terminal
+from lotsqrl import tiles
+import math
 
 
 def get_closest_actor(origin, actors):
@@ -19,7 +21,9 @@ def sign(number):
 
 
 def get_distance(actor, target):
-    return abs(target.x - actor.x) + abs(target.y - actor.y)
+    dx = abs(target.x - actor.x)
+    dy = abs(target.y - actor.y)
+    return dx if dx > dy else dy
 
 
 def get_directional_pos():
@@ -32,6 +36,31 @@ def get_directional_pos():
 
         if press == terminal.TK_ESCAPE:
             return
+
+
+def has_clear_line_of_sight(actor, target):
+    level = actor.level
+    line_x, line_y = actor.x, actor.y
+    delta_x, delta_y = get_actor_delta(actor, target)
+    sign_x, sign_y = sign(delta_x), sign(delta_y)
+
+    reached_x = False
+    reached_y = False
+    while not (reached_x and reached_y):
+        if line_x == target.x:
+            reached_x = True
+        else:
+            line_x += sign_x
+
+        if line_y == target.y:
+            reached_y = True
+        else:
+            line_y += sign_y
+
+        if level.get_tile(line_x, line_y) != tiles.CaveFloor:
+            return False
+
+    return True
 
 
 direction_offsets = {

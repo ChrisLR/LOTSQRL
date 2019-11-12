@@ -108,8 +108,8 @@ class Spiderling(Arachnid):
 
 class Spider(Arachnid):
     actor_type = ActorTypes.Spider
-    base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse())
-    behaviors = [behaviors.Attack, behaviors.EatCorpse]
+    base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse(), actions.Jump())
+    behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy]
 
     def __init__(self, game, x, y):
         super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
@@ -138,7 +138,7 @@ class Spider(Arachnid):
 
 class SpiderQueen(Arachnid):
     actor_type = ActorTypes.SpiderQueen
-    base_actions = (actions.Bite(damage=(4, 8)), actions.EatCorpse())
+    base_actions = (actions.Bite(damage=(4, 8)), actions.EatCorpse(), actions.Jump())
     egg_delay = 11
     jump_delay = 6
     web_delay = 20

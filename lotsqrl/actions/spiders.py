@@ -1,5 +1,7 @@
-from lotsqrl.actions.base import MeleeAttack, TouchAction
+from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
 from lotsqrl.teams import Team, ActorTypes
+from lotsqrl import movement, tiles, utils
+import random
 
 
 class Bite(MeleeAttack):
@@ -29,7 +31,7 @@ class BurrowEgg(TouchAction):
         return True
 
     def execute(self, actor, target):
-        actor.game.add_message("%s burrows into %s!" % (self.name, target.name))
+        actor.game.add_message("%s burrows into %s!" % (actor.name, target.name))
         target.burrowed = True
         actor.level.remove_actor(actor)
 
@@ -61,7 +63,7 @@ class EatCorpse(TouchAction):
         if actor.is_player:
             actor.game.add_message("You eat %s !" % target.name)
         else:
-            actor.game.add_message("%s eats %s !" % (self.name, target.name))
+            actor.game.add_message("%s eats %s !" % (actor.name, target.name))
         actor.level.remove_actor(target)
         actor.target = None
         if actor.hp + self.heal <= actor.max_hp:
@@ -70,3 +72,55 @@ class EatCorpse(TouchAction):
             actor.hp = actor.max_hp
 
         return True
+
+
+class Jump(Action):
+    base_reach = 3
+    name = "jump"
+
+    def __init__(self, reach=None):
+        super().__init__()
+        self.reach = reach or self.base_reach
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            return base_result
+
+        if actor.cooldowns.get("jump"):
+            return False
+
+        if utils.get_distance(actor, target) > self.reach:
+            return False
+
+        if not utils.has_clear_line_of_sight(actor, target):
+            return False
+
+        return True
+
+    def execute(self, actor, target):
+        x, y = target.x, target.y
+        level = actor.level
+        game = actor.game
+        if level.get_tile(x, y) == tiles.CaveFloor:
+            collides = level.get_actors_by_pos(x, y)
+            collisions = [collide for collide in collides if collide is not self and collide.blocking]
+            if collisions:
+                game.add_message("%s leaps into %s" % (actor.name, ','.join((collision.name for collision in collisions))))
+                dx, dy = utils.get_actor_delta(self, collisions[0])
+                dx = utils.sign(dx) * 2
+                dy = utils.sign(dy) * 2
+
+                for collision in collisions:
+                    collision.hp -= random.randint(1, 3)
+                    moved = movement.move_to(collision, collision.x + dx, collision.y + dy, bump=False)
+                    if moved is False and collision is not game.boss:
+                        game.add_message("%s is crushed under %s!" % (collision.name, actor.name))
+                        collision.on_death()
+                        if actor.score is not None:
+                            actor.score.enemies_crushed += 1
+
+            actor.x = x
+            actor.y = y
+        else:
+            return False
