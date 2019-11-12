@@ -4,7 +4,14 @@ from lotsqrl import utils
 
 
 class Action(object):
+    base_cooldown = 0
     name = ""
+
+    def __init__(self, cooldown=None):
+        self.cooldown = cooldown or self.base_cooldown
+
+    def apply_cooldown(self, actor):
+        actor.cooldowns.set()
 
     def can_execute(self, actor, target):
         """
@@ -17,7 +24,11 @@ class Action(object):
         :return: Tells if an action is executable or not
         :rtype bool:
         """
-        pass
+        cooldown = actor.cooldowns.get(self.name)
+        if cooldown:
+            actor.game.player_message(actor, "You need to wait %s more rounds." % cooldown)
+            return False
+        return True
 
     def execute(self, actor, target):
         """

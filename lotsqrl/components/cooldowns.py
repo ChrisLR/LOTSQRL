@@ -6,6 +6,9 @@ class Cooldowns(object):
     def get(self, name):
         return self._cooldowns.get(name, 0)
 
+    def set(self, name, value):
+        self._cooldowns[name] = value
+
     def update(self):
         for key in self._cooldowns.keys():
             value = self._cooldowns[key]

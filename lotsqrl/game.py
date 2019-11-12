@@ -30,6 +30,10 @@ class Game(object):
             self.scene.update_messages()
             terminal.refresh()
 
+    def player_message(self, actor, message, show_now=False):
+        if actor.is_player:
+            self.add_message(message, show_now)
+
     def prepare(self):
         automata_steps = 4  # Usually gives a nice layout
         self.level = automata.generate_map(self.options.map_width, self.options.map_height, automata_steps)
@@ -61,6 +65,7 @@ class Game(object):
 
             if player.moved:
                 player.moved = False
+                player.update()
                 if not boss.dead:
                     self.turn += 1
                 for actor in level.actors.copy():
@@ -68,6 +73,7 @@ class Game(object):
                         continue
                     if actor.level is not None:
                         actor.act()
+                        actor.update()
 
             turn = self.turn
             if turn >= 10 and turn % 10 == 0 and not boss.dead and not player.dead:

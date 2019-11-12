@@ -13,6 +13,7 @@ class Stab(MeleeAttack):
 
 class Headbutt(MeleeAttack):
     base_damage = (1, 8)
+    base_cooldown = 20
     name = "headbutt"
 
     def can_execute(self, actor, target):
@@ -20,14 +21,11 @@ class Headbutt(MeleeAttack):
         if not base_result:
             return base_result
 
-        if actor.headbutt_cooldown > 0:
-            return False
-
     def on_hit(self, actor, target):
         game = actor.game
         game.add_message(actor.name + " headbutts %s!" % target.name)
         super().on_hit(actor, target)
-        actor.headbutt_cooldown = 20
+        self.apply_cooldown(actor)
         target.stunned = True
 
 

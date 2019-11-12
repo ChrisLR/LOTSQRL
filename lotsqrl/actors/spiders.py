@@ -109,7 +109,7 @@ class Spiderling(Arachnid):
 class Spider(Arachnid):
     actor_type = ActorTypes.Spider
     base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse(), actions.Jump())
-    behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy]
+    behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy, behaviors.LayEgg]
 
     def __init__(self, game, x, y):
         super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
@@ -145,9 +145,6 @@ class SpiderQueen(Arachnid):
 
     def __init__(self, game, x, y):
         super().__init__(game, 20, "@", "You", x, y, team=Team.SpiderQueen)
-        self.egg_cool_down = 0
-        self.jump_cool_down = 0
-        self.web_cooldown = 0
         self.is_player = True
         self.score = Score()
         self.moved = False
@@ -187,21 +184,14 @@ class SpiderQueen(Arachnid):
                 self.game.should_restart = True
                 return
 
-        if self.moved:
-            if self.egg_cool_down > 0:
-                self.egg_cool_down -= 1
-            if self.jump_cool_down > 0:
-                self.jump_cool_down -= 1
-            if self.web_cooldown > 0:
-                self.web_cooldown -= 1
-
     def bump(self, target):
         if target.team == Team.Goblin:
             return self.actions.try_execute("bite", target)
 
     def fire_web(self):
-        if self.web_cooldown > 0:
-            self.game.add_message("You need to wait %s more rounds to fire web." % self.web_cooldown)
+        web_cooldown = self.cooldowns.get("web")
+        if web_cooldown:
+            self.game.add_message("You need to wait %s more rounds to fire web." % web_cooldown)
             return False
 
         self.game.add_message("Press direction to fire web", show_now=True)
@@ -212,7 +202,7 @@ class SpiderQueen(Arachnid):
 
         if self.score is not None:
             self.score.webs_fired += 1
-        self.web_cooldown = self.web_delay
+        self.cooldowns.set("web", self.web_delay)
 
         for i in range(1, 10):
             web_x, web_y = self.x + (offset[0] * i), self.y + (offset[1] * i)
@@ -322,22 +312,24 @@ class SpiderQueen(Arachnid):
         return False
 
     def lay_egg(self):
-        if self.egg_cool_down > 0:
-            self.game.add_message("You need to wait %s more rounds to lay." % self.egg_cool_down)
+        egg_cooldown = self.cooldowns.get("lay_egg")
+        if egg_cooldown:
+            self.game.add_message("You need to wait %s more rounds to lay." % egg_cooldown)
             return False
 
         self.game.add_message("You lay an egg.")
         new_egg = Egg(self.game, self.x, self.y)
         self.level.add_actor(new_egg)
-        self.egg_cool_down = self.egg_delay
+        self.cooldowns.set("lay_egg", self.egg_delay)
         if self.score is not None:
             self.score.eggs_laid += 1
 
         return True
 
     def jump(self):
-        if self.jump_cool_down > 0:
-            self.game.add_message("You need to wait %s more rounds to jump." % self.jump_cool_down)
+        jump_cooldown = self.cooldowns.get("jump")
+        if jump_cooldown:
+            self.game.add_message("You need to wait %s more rounds to jump." % jump_cooldown)
             return False
 
         self.game.add_message("Press direction to jump", show_now=True)
@@ -357,7 +349,7 @@ class SpiderQueen(Arachnid):
             self.game.add_message("Can't jump there, a wall in the way.")
             return False
         else:
-            self.jump_cool_down = self.jump_delay
+            self.cooldowns.set("jump", self.jump_delay)
             return True
 
     def try_eat(self):

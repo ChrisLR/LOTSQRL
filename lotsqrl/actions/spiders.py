@@ -1,7 +1,8 @@
-from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
-from lotsqrl.teams import Team, ActorTypes
-from lotsqrl import movement, tiles, utils
 import random
+
+from lotsqrl import movement, tiles, utils
+from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
+from lotsqrl.teams import ActorTypes
 
 
 class Bite(MeleeAttack):
@@ -75,20 +76,18 @@ class EatCorpse(TouchAction):
 
 
 class Jump(Action):
+    base_cooldown = 6
     base_reach = 3
     name = "jump"
 
-    def __init__(self, reach=None):
-        super().__init__()
+    def __init__(self, cooldown=None, reach=None):
+        super().__init__(cooldown)
         self.reach = reach or self.base_reach
 
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
             return base_result
-
-        if actor.cooldowns.get("jump"):
-            return False
 
         if utils.get_distance(actor, target) > self.reach:
             return False
@@ -107,7 +106,7 @@ class Jump(Action):
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
                 game.add_message("%s leaps into %s" % (actor.name, ','.join((collision.name for collision in collisions))))
-                dx, dy = utils.get_actor_delta(self, collisions[0])
+                dx, dy = utils.get_actor_delta(actor, collisions[0])
                 dx = utils.sign(dx) * 2
                 dy = utils.sign(dy) * 2
 
@@ -122,5 +121,28 @@ class Jump(Action):
 
             actor.x = x
             actor.y = y
+            actor.cooldowns.set(self.name, self.cooldown)
         else:
             return False
+
+
+class LayEgg(Action):
+    base_cooldown = 10
+    name = "lay_egg"
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            return base_result
+
+        return True
+
+    def execute(self, actor, target):
+        # TODO This is bad, do it better
+        from lotsqrl.actors import Egg
+        actor.game.add_message("%s lays an egg." % actor.name)
+        new_egg = Egg(actor.game, actor.x, actor.y)
+        actor.level.add_actor(new_egg)
+        actor.cooldowns.set(self.name, self.base_cooldown)
+        if actor.score is not None:
+            actor.score.eggs_laid += 1

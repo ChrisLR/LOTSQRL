@@ -43,9 +43,9 @@ class GameScene(object):
         terminal.printf(2, 1, "Hp:%s" % player.hp)
         terminal.printf(2, 2, "Turn:%s" % turn)
         terminal.printf(11, 1, "Cooldowns")
-        terminal.printf(11, 2, "Egg:%s" % player.egg_cool_down)
-        terminal.printf(11, 3, "Jump:%s" % player.jump_cool_down)
-        terminal.printf(11, 4, "Web:%s" % player.web_cooldown)
+        terminal.printf(11, 2, "Egg:%s" % player.cooldowns.get("lay_egg"))
+        terminal.printf(11, 3, "Jump:%s" % player.cooldowns.get("jump"))
+        terminal.printf(11, 4, "Web:%s" % player.cooldowns.get("web"))
 
         terminal.printf(30, 1, "Kills:%s" % player.score.kills)
         terminal.printf(30, 2, "Eggs Laid:%s" % player.score.eggs_laid)

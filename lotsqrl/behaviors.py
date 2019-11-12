@@ -168,7 +168,7 @@ class JumpOnEnemy(Behavior):
     def _get_target(cls, actor):
         enemies = actor.level.get_actors_by_team(Team.Goblin)
         if not enemies:
-            return Priority.Never
+            return enemies
 
         enemies = (enemy for enemy in enemies if actor.actions.can_execute("jump", enemy))
         valid_enemy = next(enemies, None)
@@ -184,3 +184,27 @@ class JumpOnEnemy(Behavior):
         if valid_enemy:
             return Priority.Extreme
         return Priority.Never
+
+
+class LayEgg(Behavior):
+    @classmethod
+    def execute(cls, actor, target=None):
+        return actor.actions.try_execute("lay_egg", target)
+
+    @classmethod
+    def get_priority(cls, actor):
+        if actor.cooldowns.get("lay_egg"):
+            return Priority.Never
+
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if enemies:
+            closest_enemy = utils.get_closest_actor(actor, enemies)
+            dist = utils.get_distance(actor, closest_enemy)
+            if dist >= 10:
+                return Priority.High
+            elif dist >= 5:
+                return Priority.Medium
+            else:
+                return Priority.Never
+
+        return Priority.High

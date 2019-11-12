@@ -21,6 +21,9 @@ class GameObject(object):
     def ascii_str(self):
         return "[color=%s]%s[/color]" % (self.ascii_color, self.display_char)
 
+    def update(self):
+        pass
+
 
 class Actor(GameObject):
     actor_type = None
@@ -54,6 +57,10 @@ class Actor(GameObject):
         corpse = Corpse(self.game, self.name, self.x, self.y)
         self.game.level.remove_actor(self)
         self.game.level.add_actor(corpse)
+
+    def update(self):
+        super().update()
+        self.cooldowns.update()
 
 
 class Corpse(GameObject):

@@ -1,6 +1,6 @@
 from bearlibterminal import terminal
+
 from lotsqrl import tiles
-import math
 
 
 def get_closest_actor(origin, actors):
@@ -23,6 +23,7 @@ def sign(number):
 def get_distance(actor, target):
     dx = abs(target.x - actor.x)
     dy = abs(target.y - actor.y)
+
     return dx if dx > dy else dy
 
 
