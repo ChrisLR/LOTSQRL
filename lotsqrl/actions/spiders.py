@@ -32,7 +32,12 @@ class BurrowEgg(TouchAction):
         return True
 
     def execute(self, actor, target):
-        actor.game.add_message("%s burrows into %s!" % (actor.name, target.name))
+        game = actor.game
+        if actor.is_player:
+            game.add_message("You burrow into %s!" % target.name)
+        else:
+            game.add_message("%s burrows into %s!" % (actor.name, target.name))
+
         target.burrowed = True
         actor.level.remove_actor(actor)
 
@@ -65,6 +70,7 @@ class EatCorpse(TouchAction):
             actor.game.add_message("You eat %s !" % target.name)
         else:
             actor.game.add_message("%s eats %s !" % (actor.name, target.name))
+
         actor.level.remove_actor(target)
         actor.target = None
         if actor.hp + self.heal <= actor.max_hp:
@@ -105,7 +111,12 @@ class Jump(Action):
             collides = level.get_actors_by_pos(x, y)
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
-                game.add_message("%s leaps into %s" % (actor.name, ','.join((collision.name for collision in collisions))))
+                collision_names = ','.join((collision.name for collision in collisions))
+                if actor.is_player:
+                    game.add_message("You leap into %s !" % collision_names)
+                else:
+                    game.add_message("%s leaps into %s" % (actor.name, collision_names))
+
                 dx, dy = utils.get_actor_delta(actor, collisions[0])
                 dx = utils.sign(dx) * 2
                 dy = utils.sign(dy) * 2
@@ -140,7 +151,12 @@ class LayEgg(Action):
     def execute(self, actor, target):
         # TODO This is bad, do it better
         from lotsqrl.actors import Egg
-        actor.game.add_message("%s lays an egg." % actor.name)
+        game = actor.game
+        if actor.is_player:
+            game.add_message("You lay an egg.")
+        else:
+            game.add_message("%s lays an egg." % actor.name)
+
         new_egg = Egg(actor.game, actor.x, actor.y)
         actor.level.add_actor(new_egg)
         actor.cooldowns.set(self.name, self.base_cooldown)

@@ -9,6 +9,7 @@ from lotsqrl.actors.base import Actor
 from lotsqrl.scenes.helpfile import draw_help_file
 from lotsqrl.score import Score
 from lotsqrl.teams import Team, ActorTypes
+from lotsqrl.gameobjects import GridTarget
 
 
 class Egg(Actor):
@@ -54,23 +55,6 @@ class Arachnid(Actor):
     ascii_color = "red"
     base_actions = (actions.Bite(), actions.EatCorpse())
     bite_damage_range = (1, 4)
-
-    def eat(self, target):
-        if self.score is not None:
-            self.score.corpses_eaten += 1
-
-        if self.is_player:
-            self.game.add_message("You eat %s !" % target.name)
-        else:
-            self.game.add_message("%s eats %s !" % (self.name, target.name))
-        self.level.remove_actor(target)
-        self.target = None
-        if self.hp + 5 <= self.max_hp:
-            self.hp += 5
-        else:
-            self.hp = self.max_hp
-
-        return True
 
 
 class Spiderling(Arachnid):
@@ -138,9 +122,12 @@ class Spider(Arachnid):
 
 class SpiderQueen(Arachnid):
     actor_type = ActorTypes.SpiderQueen
-    base_actions = (actions.Bite(damage=(4, 8)), actions.EatCorpse(), actions.Jump())
-    egg_delay = 11
-    jump_delay = 6
+    base_actions = (
+        actions.Bite(damage=(4, 8)),
+        actions.EatCorpse(),
+        actions.Jump(),
+        actions.LayEgg()
+    )
     web_delay = 20
 
     def __init__(self, game, x, y):
@@ -312,19 +299,7 @@ class SpiderQueen(Arachnid):
         return False
 
     def lay_egg(self):
-        egg_cooldown = self.cooldowns.get("lay_egg")
-        if egg_cooldown:
-            self.game.add_message("You need to wait %s more rounds to lay." % egg_cooldown)
-            return False
-
-        self.game.add_message("You lay an egg.")
-        new_egg = Egg(self.game, self.x, self.y)
-        self.level.add_actor(new_egg)
-        self.cooldowns.set("lay_egg", self.egg_delay)
-        if self.score is not None:
-            self.score.eggs_laid += 1
-
-        return True
+        return self.actions.try_execute("lay_egg")
 
     def jump(self):
         jump_cooldown = self.cooldowns.get("jump")
@@ -344,13 +319,8 @@ class SpiderQueen(Arachnid):
         if oy != 0:
             oy *= 3
 
-        jumped = self.jump_to(self.x + ox, self.y + oy)
-        if jumped is False:
-            self.game.add_message("Can't jump there, a wall in the way.")
-            return False
-        else:
-            self.cooldowns.set("jump", self.jump_delay)
-            return True
+        target = GridTarget(self.x + ox, self.y + oy)
+        return self.actions.try_execute('jump', target)
 
     def try_eat(self):
         self.game.add_message("Press direction to eat corpse", show_now=True)
@@ -362,7 +332,7 @@ class SpiderQueen(Arachnid):
         tx, ty = self.x + offset[0], self.y + offset[1]
         targets = self.level.get_actors_by_pos(tx, ty, team=Team.Corpse)
         if targets:
-            return self.eat(targets[0])
+            return self.actions.try_execute('eat_corpse', targets[0])
 
         self.game.add_message("No corpses there.", show_now=True)
         return False
@@ -372,27 +342,3 @@ class SpiderQueen(Arachnid):
         self.dead = True
         self.display_char = "%"
         self.game.add_message("You are DEAD!")
-
-    def jump_to(self, x, y):
-        if self.level.get_tile(x, y) == tiles.CaveFloor:
-            collides = self.level.get_actors_by_pos(x, y)
-            collisions = [collide for collide in collides if collide is not self and collide.blocking]
-            if collisions:
-                self.game.add_message("You leap into %s" % ','.join((collision.name for collision in collisions)))
-                dx, dy = utils.get_actor_delta(self, collisions[0])
-                dx = utils.sign(dx) * 2
-                dy = utils.sign(dy) * 2
-
-                for collision in collisions:
-                    collision.hp -= random.randint(1, 3)
-                    moved = movement.move_to(collision, collision.x + dx, collision.y + dy, bump=False)
-                    if moved is False and collision is not self.game.boss:
-                        self.game.add_message("%s is crushed under you!" % collision.name)
-                        collision.on_death()
-                        if self.score is not None:
-                            self.score.enemies_crushed += 1
-
-            self.x = x
-            self.y = y
-        else:
-            return False

@@ -3,7 +3,7 @@ class Action(object):
         self.host = host
         self.actions = {action.name: action for action in base_actions}
 
-    def can_execute(self, name, target):
+    def can_execute(self, name, target=None):
         """Confirms if an action CAN execute
         Useful we need to know if an action MAY occur at all
 
@@ -15,7 +15,7 @@ class Action(object):
         if action is not None:
             return action.can_execute(self.host, target)
 
-    def execute(self, name, target):
+    def execute(self, name, target=None):
         """Executes an action
         Useful we need to differentiate the result from the occurrence
 
@@ -27,7 +27,7 @@ class Action(object):
         if action is not None:
             return action.execute(self.host, target)
 
-    def try_execute(self, name, target):
+    def try_execute(self, name, target=None):
         """Tries to execute and executes in one step.
         Useful when a failed action is the same as an action that could not execute
 
