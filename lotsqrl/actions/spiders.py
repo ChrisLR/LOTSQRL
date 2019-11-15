@@ -2,7 +2,7 @@ import random
 
 from lotsqrl import movement, tiles, utils
 from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
-from lotsqrl.teams import ActorTypes
+from lotsqrl.teams import ActorTypes, Team
 
 
 class Bite(MeleeAttack):
@@ -162,3 +162,60 @@ class LayEgg(Action):
         actor.cooldowns.set(self.name, self.base_cooldown)
         if actor.score is not None:
             actor.score.eggs_laid += 1
+
+
+class SpinCocoon(Action):
+    base_cooldown = 20
+    base_reach = 3
+    name = "spin_cocoon"
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            return base_result
+
+        if target.team != Team.Goblin:
+            actor.game.player_message(actor, "That wouldn't make a nutritious food.")
+            return False
+
+        dist = utils.get_distance(actor, target)
+        if dist <= self.base_reach:
+            obstacles = utils.get_obstacles_in_target_line(actor, target)
+            if obstacles:
+                return False
+
+        return True
+
+    def execute(self, actor, target):
+        # TODO This is bad, do it better
+        from lotsqrl.actors import Cocoon
+
+        game = actor.game
+        level = actor.level
+        is_player = actor.is_player
+        if target == actor.game.boss:
+            if is_player:
+                game.add_message(
+                    f"You try to ensnare {target.name} in your web "
+                    f"but it pulls strong and resists.")
+            else:
+                game.add_message(
+                    f"{actor.name} tries to ensnare {target.name} in it's web "
+                    f"but it pulls strong and resists.")
+        else:
+            if actor.is_player:
+                game.add_message(f"You snatch {target.name} with your web, "
+                                 f"pulling and spinning it into a cocoon!")
+            else:
+                game.add_message(f"{actor.name} snatches {target.name} with it's web, "
+                                 f"pulling and spinning it into a cocoon!")
+
+            offset_x, offset_y = utils.get_directional_delta(actor, target)
+            new_x = actor.x + offset_x
+            new_y = actor.y + offset_y
+            target.dead = True
+            level.remove_actor(target)
+            level.add_actor(Cocoon(game, new_x, new_y))
+            self.apply_cooldown(actor)
+
+        return True

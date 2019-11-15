@@ -11,7 +11,7 @@ class Action(object):
         self.cooldown = cooldown or self.base_cooldown
 
     def apply_cooldown(self, actor):
-        actor.cooldowns.set()
+        actor.cooldowns.set(self.name)
 
     def can_execute(self, actor, target):
         """

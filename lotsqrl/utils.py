@@ -11,6 +11,11 @@ def get_actor_delta(actor, target):
     return target.x - actor.x, target.y - actor.y
 
 
+def get_directional_delta(actor, target):
+    x, y = get_actor_delta(actor, target)
+    return sign(x), sign(y)
+
+
 def sign(number):
     if number > 0:
         return 1
@@ -40,6 +45,12 @@ def get_directional_pos():
 
 
 def has_clear_line_of_sight(actor, target):
+    if get_obstacles_in_target_line(actor, target, actors=False):
+        return False
+    return True
+
+
+def get_obstacles_in_target_line(actor, target, walls=True, actors=True):
     level = actor.level
     line_x, line_y = actor.x, actor.y
     delta_x, delta_y = get_actor_delta(actor, target)
@@ -58,10 +69,16 @@ def has_clear_line_of_sight(actor, target):
         else:
             line_y += sign_y
 
-        if level.get_tile(line_x, line_y) != tiles.CaveFloor:
-            return False
+        if walls:
+            tile = level.get_tile(line_x, line_y)
+            if tile != tiles.CaveFloor:
+                return tile
 
-    return True
+        if actors:
+            actors = [a for a in level.get_actors_by_pos(line_x, line_y)
+                      if a is not actor and a is not target]
+
+    return None
 
 
 direction_offsets = {
