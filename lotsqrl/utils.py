@@ -50,6 +50,16 @@ def has_clear_line_of_sight(actor, target):
     return True
 
 
+def is_in_direct_line(actor, target):
+    dx, dy = get_actor_delta(actor, target)
+    if abs(dx) == abs(dy):
+        # Diagonals
+        return True
+    elif dx == 0 or dy == 0:
+        return True
+    return False
+
+
 def get_obstacles_in_target_line(actor, target, walls=True, actors=True):
     level = actor.level
     line_x, line_y = actor.x, actor.y

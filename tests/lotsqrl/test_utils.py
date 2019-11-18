@@ -48,3 +48,13 @@ def test_clear_line_of_sight_returns_false_when_obstructed():
     result = utils.has_clear_line_of_sight(actor, target)
 
     assert result is False
+
+
+def test_get_directional_delta_returns_appropriate_result():
+    level = Level(10, 10)
+    actor = actors.Spider(None, 5, 3)
+    actor.level = level
+    target = actors.Goblin(None, 1, 4)
+    result = utils.get_directional_delta(actor, target)
+
+    assert result == (-1, 1)

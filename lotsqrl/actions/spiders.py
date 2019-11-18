@@ -175,7 +175,7 @@ class SpinCocoon(Action):
             return base_result
 
         if target.team != Team.Goblin:
-            actor.game.player_message(actor, "That wouldn't make a nutritious food.")
+            actor.game.player_message(actor, "That wouldn't make a nutritious meal.")
             return False
 
         dist = utils.get_distance(actor, target)
@@ -213,6 +213,7 @@ class SpinCocoon(Action):
             offset_x, offset_y = utils.get_directional_delta(actor, target)
             new_x = actor.x + offset_x
             new_y = actor.y + offset_y
+            # TODO This may spawn an egg in a wall
             target.dead = True
             level.remove_actor(target)
             level.add_actor(Cocoon(game, new_x, new_y))

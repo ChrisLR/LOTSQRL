@@ -92,8 +92,8 @@ class Spiderling(Arachnid):
 
 class Spider(Arachnid):
     actor_type = ActorTypes.Spider
-    base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse(), actions.Jump())
-    behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy, behaviors.LayEgg]
+    base_actions = (actions.Bite(damage=(2, 8)), actions.EatCorpse(), actions.Jump(), actions.SpinCocoon())
+    behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy, behaviors.SpinCocoon]
 
     def __init__(self, game, x, y):
         super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
