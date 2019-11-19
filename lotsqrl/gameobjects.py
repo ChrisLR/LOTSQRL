@@ -41,3 +41,14 @@ class GridTarget(object):
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
+
+
+class TargetLine(object):
+    def __init__(self, actor, target, coordinates):
+        self.actor = actor
+        self.target = target
+        self.coordinates = coordinates
+        self.level = actor.level
+
+    def __iter__(self):
+        yield from self.coordinates

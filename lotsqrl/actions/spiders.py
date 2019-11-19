@@ -169,6 +169,10 @@ class SpinCocoon(Action):
     base_reach = 3
     name = "spin_cocoon"
 
+    def __init__(self, cooldown=None):
+        super().__init__(cooldown)
+        self.target_line = None
+
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
@@ -180,7 +184,9 @@ class SpinCocoon(Action):
 
         dist = utils.get_distance(actor, target)
         if dist <= self.base_reach:
-            obstacles = utils.get_obstacles_in_target_line(actor, target)
+            target_line = utils.get_target_line(actor, target)
+            obstacles = utils.get_obstacles_in_target_line(target_line)
+            self.target_line = target_line
             if obstacles:
                 return False
 
@@ -210,10 +216,7 @@ class SpinCocoon(Action):
                 game.add_message(f"{actor.name} snatches {target.name} with it's web, "
                                  f"pulling and spinning it into a cocoon!")
 
-            offset_x, offset_y = utils.get_directional_delta(actor, target)
-            new_x = actor.x + offset_x
-            new_y = actor.y + offset_y
-            # TODO This may spawn an egg in a wall
+            new_x, new_y = utils.get_closest_floor_in_line(self.target_line)
             target.dead = True
             level.remove_actor(target)
             level.add_actor(Cocoon(game, new_x, new_y))

@@ -1,6 +1,7 @@
 from bearlibterminal import terminal
 
 from lotsqrl import tiles
+from lotsqrl.gameobjects import TargetLine
 
 
 def get_closest_actor(origin, actors):
@@ -45,7 +46,8 @@ def get_directional_pos():
 
 
 def has_clear_line_of_sight(actor, target):
-    if get_obstacles_in_target_line(actor, target, actors=False):
+    target_line = get_target_line(actor, target)
+    if get_obstacles_in_target_line(target_line, actors=False):
         return False
     return True
 
@@ -60,8 +62,33 @@ def is_in_direct_line(actor, target):
     return False
 
 
-def get_obstacles_in_target_line(actor, target, walls=True, actors=True):
-    level = actor.level
+def get_closest_floor_in_line(target_line):
+    level = target_line.level
+    for coord in target_line:
+        if level.get_tile(*coord) == tiles.CaveFloor:
+            return coord
+
+
+def get_obstacles_in_target_line(target_line, walls=True, actors=True):
+    actor = target_line.actor
+    level = target_line.level
+    target = target_line.target
+    for coord in target_line:
+        x, y = coord
+        if walls:
+            tile = level.get_tile(x, y)
+            if tile != tiles.CaveFloor:
+                return tile
+
+        if actors:
+            actors = [a for a in level.get_actors_by_pos(x, y)
+                      if a is not actor and a is not target]
+
+    return None
+
+
+def get_target_line(actor, target):
+    coords = []
     line_x, line_y = actor.x, actor.y
     delta_x, delta_y = get_actor_delta(actor, target)
     sign_x, sign_y = sign(delta_x), sign(delta_y)
@@ -79,16 +106,9 @@ def get_obstacles_in_target_line(actor, target, walls=True, actors=True):
         else:
             line_y += sign_y
 
-        if walls:
-            tile = level.get_tile(line_x, line_y)
-            if tile != tiles.CaveFloor:
-                return tile
+        coords.append((line_x, line_y))
 
-        if actors:
-            actors = [a for a in level.get_actors_by_pos(line_x, line_y)
-                      if a is not actor and a is not target]
-
-    return None
+    return TargetLine(actor, target, coords)
 
 
 direction_offsets = {
