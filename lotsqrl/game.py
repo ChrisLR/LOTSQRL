@@ -3,7 +3,7 @@ import sys
 
 from bearlibterminal import terminal
 
-from lotsqrl import actors, automata, tiles
+from lotsqrl import actors, automata, controllers, tiles
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
 from lotsqrl.teams import Team
@@ -13,6 +13,7 @@ class Game(object):
     def __init__(self, options, screen_info):
         self.boss = actors.GoblinChief(self, 0, 0)
         self.player = actors.SpiderQueen(self, 0, 0)
+        self.player.controller = controllers.PlayerController(self.player)
         self.camera = Camera(self.player, options, screen_info)
         self.game_won = False
         self.options = options
