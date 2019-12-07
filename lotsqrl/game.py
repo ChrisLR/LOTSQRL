@@ -3,7 +3,7 @@ import sys
 
 from bearlibterminal import terminal
 
-from lotsqrl import actors, automata, tiles
+from lotsqrl import actors, automata, controllers, tiles
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
 from lotsqrl.teams import Team
@@ -13,6 +13,7 @@ class Game(object):
     def __init__(self, options, screen_info):
         self.boss = actors.GoblinChief(self, 0, 0)
         self.player = actors.SpiderQueen(self, 0, 0)
+        self.player.controller = controllers.PlayerController(self.player)
         self.camera = Camera(self.player, options, screen_info)
         self.game_won = False
         self.options = options
@@ -29,6 +30,10 @@ class Game(object):
         if show_now:
             self.scene.update_messages()
             terminal.refresh()
+
+    def player_message(self, actor, message, show_now=False):
+        if actor.is_player:
+            self.add_message(message, show_now)
 
     def prepare(self):
         automata_steps = 4  # Usually gives a nice layout
@@ -61,6 +66,7 @@ class Game(object):
 
             if player.moved:
                 player.moved = False
+                player.update()
                 if not boss.dead:
                     self.turn += 1
                 for actor in level.actors.copy():
@@ -68,6 +74,7 @@ class Game(object):
                         continue
                     if actor.level is not None:
                         actor.act()
+                        actor.update()
 
             turn = self.turn
             if turn >= 10 and turn % 10 == 0 and not boss.dead and not player.dead:

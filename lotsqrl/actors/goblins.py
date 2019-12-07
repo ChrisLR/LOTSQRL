@@ -1,6 +1,4 @@
-import random
-
-from lotsqrl import movement, utils
+from lotsqrl import actions, movement, utils
 from lotsqrl.actors.base import Actor
 from lotsqrl.teams import Team, ActorTypes
 
@@ -8,6 +6,7 @@ from lotsqrl.teams import Team, ActorTypes
 class Goblin(Actor):
     actor_type = ActorTypes.Goblin
     ascii_color = 'green'
+    base_actions = (actions.Stab(),)
 
     def __init__(self, game, x, y):
         super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
@@ -26,22 +25,14 @@ class Goblin(Actor):
 
     def bump(self, target):
         if not target.team == Team.Goblin:
-            return self.stab(target)
+            return self.actions.try_execute("stab", target)
         return False
-
-    def stab(self, target):
-        self.game.add_message(self.name + " stabs %s!" % target.name)
-        damage = random.randint(1, 4)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-
-        return True
 
 
 class GoblinChief(Actor):
     actor_types = ActorTypes.GoblinChief
     ascii_color = 'green'
+    base_actions = (actions.Headbutt(), actions.Slice(),)
 
     def __init__(self, game, x, y):
         super().__init__(game, 50, "G", "Goblin Chief", x, y, team=Team.Goblin)
@@ -67,25 +58,5 @@ class GoblinChief(Actor):
             return False
 
         if self.headbutt_cooldown == 0:
-            return self.headbutt(target)
-        return self.slice(target)
-
-    def headbutt(self, target):
-        self.game.add_message(self.name + " headbutts %s!" % target.name)
-        damage = random.randint(1, 8)
-        self.headbutt_cooldown = 20
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-        target.stunned = True
-
-        return True
-
-    def slice(self, target):
-        self.game.add_message(self.name + " slices %s!" % target.name)
-        damage = random.randint(4, 12)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-
-        return True
+            return self.actions.try_execute("headbutt", target)
+        return self.actions.try_execute("slice", target)

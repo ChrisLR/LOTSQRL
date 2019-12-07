@@ -1,5 +1,8 @@
 from bearlibterminal import terminal
 
+from lotsqrl import tiles
+from lotsqrl.gameobjects import TargetLine
+
 
 def get_closest_actor(origin, actors):
     return min(actors, key=lambda actor: get_distance(origin, actor))
@@ -7,6 +10,11 @@ def get_closest_actor(origin, actors):
 
 def get_actor_delta(actor, target):
     return target.x - actor.x, target.y - actor.y
+
+
+def get_directional_delta(actor, target):
+    x, y = get_actor_delta(actor, target)
+    return sign(x), sign(y)
 
 
 def sign(number):
@@ -19,7 +27,10 @@ def sign(number):
 
 
 def get_distance(actor, target):
-    return abs(target.x - actor.x) + abs(target.y - actor.y)
+    dx = abs(target.x - actor.x)
+    dy = abs(target.y - actor.y)
+
+    return dx if dx > dy else dy
 
 
 def get_directional_pos():
@@ -32,6 +43,75 @@ def get_directional_pos():
 
         if press == terminal.TK_ESCAPE:
             return
+
+
+def has_clear_line_of_sight(actor, target):
+    target_line = get_target_line(actor, target)
+    if get_obstacles_in_target_line(target_line, include_actors=False):
+        return False
+    return True
+
+
+def is_in_direct_line(actor, target):
+    dx, dy = get_actor_delta(actor, target)
+    if abs(dx) == abs(dy):
+        # Diagonals
+        return True
+    elif dx == 0 or dy == 0:
+        return True
+    return False
+
+
+def get_closest_floor_in_line(target_line):
+    level = target_line.level
+    for coord in target_line:
+        if level.get_tile(*coord) == tiles.CaveFloor:
+            return coord
+
+
+def get_obstacles_in_target_line(target_line, include_walls=True, include_actors=True):
+    actor = target_line.actor
+    level = target_line.level
+    target = target_line.target
+    obstacles = []
+    for coord in target_line:
+        x, y = coord
+        if include_walls:
+            tile = level.get_tile(x, y)
+            if tile != tiles.CaveFloor:
+                obstacles.append(tile)
+
+        if include_actors:
+            actors = [a for a in level.get_actors_by_pos(x, y)
+                      if a is not actor and a is not target]
+            obstacles.extend(actors)
+
+    return obstacles
+
+
+def get_target_line(actor, target):
+    coords = []
+    line_x, line_y = actor.x, actor.y
+    delta_x, delta_y = get_actor_delta(actor, target)
+    sign_x, sign_y = sign(delta_x), sign(delta_y)
+
+    reached_x = False
+    reached_y = False
+    while not (reached_x and reached_y):
+        if line_x == target.x:
+            reached_x = True
+        else:
+            line_x += sign_x
+
+        if line_y == target.y:
+            reached_y = True
+        else:
+            line_y += sign_y
+
+        if not (reached_x and reached_y):
+            coords.append((line_x, line_y))
+
+    return TargetLine(actor, target, coords)
 
 
 direction_offsets = {

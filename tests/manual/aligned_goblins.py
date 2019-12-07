@@ -1,4 +1,4 @@
-from lotsqrl.tests.utils.game import GameController
+from tests import GameController
 from lotsqrl.actors.goblins import Goblin
 
 

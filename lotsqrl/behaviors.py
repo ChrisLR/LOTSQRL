@@ -31,7 +31,7 @@ class Attack(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.bite(target)
+            return actor.actions.try_execute("bite", target)
         else:
             return movement.step_to_target(actor, target)
 
@@ -56,7 +56,7 @@ class Attack(Behavior):
         if dist <= 1:
             return Priority.Extreme
         elif dist == 2:
-            return Priority.High
+            return Priority.Medium
         else:
             return Priority.Low
 
@@ -71,7 +71,7 @@ class BurrowIntoCocoon(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.burrow(target)
+            return actor.actions.try_execute("burrow_egg", target)
         else:
             return movement.step_to_target(actor, target)
 
@@ -104,7 +104,7 @@ class EatCorpse(Behavior):
 
         dist = utils.get_distance(actor, target)
         if dist <= 1:
-            return actor.eat(target)
+            return actor.actions.try_execute("eat_corpse", target)
         else:
             return movement.step_to_target(actor, target)
 
@@ -130,6 +130,9 @@ class EatCorpse(Behavior):
         if not corpses:
             return Priority.Never
 
+        if not actor.level.get_actors_by_team(Team.Goblin):
+            return Priority.High
+
         closest_corpse = utils.get_closest_actor(actor, corpses)
         dist = utils.get_distance(actor, closest_corpse)
 
@@ -137,7 +140,7 @@ class EatCorpse(Behavior):
         quarter_hp = actor.max_hp / 4
         if hp >= quarter_hp * 3:
             if dist <= 1:
-                return Priority.Medium
+                return Priority.High
             else:
                 return Priority.VeryLow
         elif hp >= quarter_hp * 2:
@@ -149,3 +152,102 @@ class EatCorpse(Behavior):
                 return Priority.Low
         else:
             return Priority.High
+
+
+class JumpOnEnemy(Behavior):
+    @classmethod
+    def execute(cls, actor, target=None):
+        if target is None:
+            target = cls._get_target(actor)
+            if target is None:
+                return False
+
+        return actor.actions.try_execute("jump", target)
+
+    @classmethod
+    def _get_target(cls, actor):
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if not enemies:
+            return enemies
+
+        enemies = (enemy for enemy in enemies if actor.actions.can_execute("jump", enemy))
+        valid_enemy = next(enemies, None)
+
+        return valid_enemy
+
+    @classmethod
+    def get_priority(cls, actor):
+        if actor.cooldowns.get("jump"):
+            return Priority.Never
+
+        valid_enemy = cls._get_target(actor)
+        if valid_enemy:
+            return Priority.Extreme
+        return Priority.Never
+
+
+class LayEgg(Behavior):
+    @classmethod
+    def execute(cls, actor, target=None):
+        return actor.actions.try_execute("lay_egg", target)
+
+    @classmethod
+    def get_priority(cls, actor):
+        if actor.cooldowns.get("lay_egg"):
+            return Priority.Never
+
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if enemies:
+            closest_enemy = utils.get_closest_actor(actor, enemies)
+            dist = utils.get_distance(actor, closest_enemy)
+            if dist >= 10:
+                return Priority.High
+            elif dist >= 5:
+                return Priority.Medium
+            else:
+                return Priority.Never
+
+        return Priority.High
+
+
+class SpinCocoon(Behavior):
+    @classmethod
+    def execute(cls, actor, target=None):
+        if target is None:
+            target = cls._get_target(actor)
+            if target is None:
+                return False
+
+        return actor.actions.try_execute("spin_cocoon", target)
+
+    @classmethod
+    def _get_target(cls, actor):
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if not enemies:
+            return None
+
+        enemies = (enemy for enemy in enemies if actor.actions.can_execute("spin_cocoon", enemy))
+        valid_enemy = next(enemies, None)
+
+        return valid_enemy
+
+    @classmethod
+    def get_priority(cls, actor):
+        if actor.cooldowns.get("spin_cocoon"):
+            return Priority.Never
+
+        enemies = actor.level.get_actors_by_team(Team.Goblin)
+        if enemies:
+            nearby_enemies = []
+            for enemy in enemies:
+                dist = utils.get_distance(actor, enemy)
+                if dist <= 3:
+                    nearby_enemies.append(enemy)
+
+            amount_of_nearby_enemies = len(nearby_enemies)
+            if amount_of_nearby_enemies == 1:
+                return Priority.Extreme
+            elif amount_of_nearby_enemies == 2:
+                return Priority.Medium
+
+        return Priority.Never
