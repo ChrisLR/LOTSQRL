@@ -58,7 +58,7 @@ class PlayerController(ActorController):
         if press == terminal.TK_E:
             host.moved = self.try_eat()
         elif press == terminal.TK_L:
-            host.moved = self.lay_egg()
+            host.moved = self.host.actions.try_execute("lay_egg")
         elif press == terminal.TK_J:
             host.moved = self.jump()
         elif press == terminal.TK_KP_5:
@@ -75,9 +75,10 @@ class PlayerController(ActorController):
                 return
     
     def fire_web(self):
-        # TODO THIS NEEDS TO BE ENTIRELY REWRITTEN
+        # TODO This has been simplified
+        # TODO It will need an Animator, Selector to properly behave
         host = self.host
-        web_cooldown = host.cooldowns.get("web")
+        web_cooldown = host.cooldowns.get("spin_cocoon")
         if web_cooldown:
             host.game.add_message("You need to wait %s more rounds to fire web." % web_cooldown)
             return False
@@ -90,121 +91,27 @@ class PlayerController(ActorController):
 
         if host.score is not None:
             host.score.webs_fired += 1
-        
-        # TODO This Needs to grab that Action Delay
-        host.cooldowns.set("web", host.web_delay)
 
-        for i in range(1, 10):
-            web_x, web_y = host.x + (offset[0] * i), host.y + (offset[1] * i)
-            if host.level.get_tile(web_x, web_y) == tiles.CaveWall:
-                host.game.add_message("Your web hits a wall, press a key to fling yourhost.", show_now=True)
-                offset = utils.get_directional_pos()
-                if offset is None:
-                    host.game.add_message("You snap your web with your fangs")
-                    return True
-                for wf in range(1, 5):
-                    gx, gy = host.x + (offset[0] * wf), host.y + (offset[1] * wf)
-                    actors = [actor for actor in host.level.get_actors_by_pos(gx, gy) if not actor.dead]
-                    if actors:
-                        actor = actors[0]
-                        host.game.add_message("You smash against %s!" % actor.name)
-                        actor.stunned = 2
-                        host.x = gx - offset[0]
-                        host.y = gy - offset[1]
-                        host.hp -= random.randint(1, 4)
-                        actor.hp -= random.randint(2, 8)
-                        if host.hp < 0:
-                            host.on_death()
-                        if actor.hp < 0:
-                            actor.on_death()
-                        break
-                    else:
-                        tile = host.level.get_tile(gx, gy)
-                        if tile == tiles.CaveWall:
-                            host.x = gx - offset[0]
-                            host.y = gy - offset[1]
-                            break
-                else:
-                    host.x = gx
-                    host.y = gy
-                return True
-
-            goblins = host.level.get_actors_by_pos(web_x, web_y, team=Team.Goblin)
-            if goblins:
-                goblin = goblins[0]
-                if goblin is None:
-                    continue
-                host.game.add_message("You web latches on %s!" % goblin.name)
-                host.game.add_message("Press direction to fling %s" % goblin.name, show_now=True)
-                offset = utils.get_directional_pos()
-                if offset is None:
-                    host.game.add_message("You snap your web with your fangs")
-                    return True
-                host.game.add_message("You fling %s in the air!" % goblin.name)
-                for wf in range(1, 5):
-                    gx, gy = goblin.x + (offset[0] * wf), goblin.y + (offset[1] * wf)
-                    actors = [actor for actor in host.level.get_actors_by_pos(gx, gy) if not actor.dead]
-                    if actors:
-                        actor = actors[0]
-                        if actor == self and goblin != host.game.boss:
-                            host.game.add_message("You catch %s and start spinning a cocoon!" % goblin.name)
-                            goblin.dead = True
-                            host.level.remove_actor(goblin)
-                            # TODO This is BAD and will be swapped out
-                            from lotsqrl.actors import Cocoon
-                            new_cocoon = Cocoon(host.game, gx - offset[0], gy - offset[1])
-                            host.level.add_actor(new_cocoon)
-                            return True
-                        host.game.add_message("%s smashes against %s!" % (goblin.name, actor.name))
-                        goblin.stunned = 1
-                        if actor != host.game.player:
-                            actor.stunned = 1
-                        goblin.x = gx - offset[0]
-                        goblin.y = gy - offset[1]
-                        goblin.hp -= random.randint(1, 4)
-                        actor.hp -= random.randint(1, 4)
-                        if goblin.hp < 0:
-                            goblin.on_death()
-                        if actor.hp < 0:
-                            actor.on_death()
-                        break
-                    else:
-                        tile = host.level.get_tile(gx, gy)
-                        if tile == tiles.CaveWall:
-                            host.game.add_message("%s smashes against the wall!" % goblin.name)
-                            goblin.stunned = 3
-                            goblin.hp -= random.randint(4, 8)
-                            if goblin.hp < 0:
-                                goblin.on_death()
-                            goblin.x = gx - offset[0]
-                            goblin.y = gy - offset[1]
-                            break
-                else:
-                    goblin.x = gx
-                    goblin.y = gy
-
-                return True
-            else:
-                web_char = utils.direction_offsets_char.get(offset)
-                graphics = host.game.options.graphical_tiles
-                if graphics:
-                    terminal.layer(2)
-                # TODO Improve this way to draw something/animation now
-                camera = host.game.camera
-                camera.set_sprite_font()
-                terminal.put(*camera.transform(web_x, web_y), web_char)
-                camera.reset_font()
-                if graphics:
-                    terminal.layer(3)
-                terminal.refresh()
-                time.sleep(0.05)
-        else:
+        spin_cocoon_action = host.actions.get("spin_cocoon")
+        web_range = spin_cocoon_action.reach
+        max_web_x, max_web_y = host.x + (offset[0] * web_range), host.y + (offset[1] * web_range)
+        target_line = utils.get_target_line(host, GridTarget(max_web_x, max_web_y))
+        spin_cocoon_action.target_line = target_line
+        obstacles = utils.get_obstacles_in_target_line(target_line)
+        if not obstacles:
             host.game.add_message("There is no one to web there.")
+            return False
+
+        for obstacle in obstacles:
+            if obstacle is tiles.CaveWall:
+                host.game.add_message("Your web hits a wall.")
+                # TODO This could allow the player to pull itself
+                return True
+            elif obstacle.team == Team.Goblin:
+                host.cooldowns.set("web", spin_cocoon_action.cooldown)
+                return spin_cocoon_action.execute(host, obstacle)
 
         return False
-
-    def lay_egg(self):
-        return self.host.actions.try_execute("lay_egg")
 
     def jump(self):
         host = self.host
