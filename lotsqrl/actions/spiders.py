@@ -169,8 +169,9 @@ class SpinCocoon(Action):
     base_reach = 3
     name = "spin_cocoon"
 
-    def __init__(self, cooldown=None):
+    def __init__(self, cooldown=None, reach=None):
         super().__init__(cooldown)
+        self.reach = reach or self.base_reach
         self.target_line = None
 
     def can_execute(self, actor, target):
@@ -183,7 +184,7 @@ class SpinCocoon(Action):
             return False
 
         dist = utils.get_distance(actor, target)
-        if dist <= self.base_reach:
+        if dist <= self.reach:
             target_line = utils.get_target_line(actor, target)
             obstacles = utils.get_obstacles_in_target_line(target_line)
             self.target_line = target_line

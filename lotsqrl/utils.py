@@ -47,7 +47,7 @@ def get_directional_pos():
 
 def has_clear_line_of_sight(actor, target):
     target_line = get_target_line(actor, target)
-    if get_obstacles_in_target_line(target_line, actors=False):
+    if get_obstacles_in_target_line(target_line, include_actors=False):
         return False
     return True
 
@@ -69,22 +69,24 @@ def get_closest_floor_in_line(target_line):
             return coord
 
 
-def get_obstacles_in_target_line(target_line, walls=True, actors=True):
+def get_obstacles_in_target_line(target_line, include_walls=True, include_actors=True):
     actor = target_line.actor
     level = target_line.level
     target = target_line.target
+    obstacles = []
     for coord in target_line:
         x, y = coord
-        if walls:
+        if include_walls:
             tile = level.get_tile(x, y)
             if tile != tiles.CaveFloor:
-                return tile
+                obstacles.append(tile)
 
-        if actors:
+        if include_actors:
             actors = [a for a in level.get_actors_by_pos(x, y)
                       if a is not actor and a is not target]
+            obstacles.extend(actors)
 
-    return None
+    return obstacles
 
 
 def get_target_line(actor, target):
@@ -106,7 +108,8 @@ def get_target_line(actor, target):
         else:
             line_y += sign_y
 
-        coords.append((line_x, line_y))
+        if not (reached_x and reached_y):
+            coords.append((line_x, line_y))
 
     return TargetLine(actor, target, coords)
 

@@ -27,6 +27,9 @@ class Action(object):
         if action is not None:
             return action.execute(self.host, target)
 
+    def get(self, name):
+        return self.actions.get(name)
+
     def try_execute(self, name, target=None):
         """Tries to execute and executes in one step.
         Useful when a failed action is the same as an action that could not execute

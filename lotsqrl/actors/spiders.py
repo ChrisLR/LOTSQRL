@@ -100,7 +100,8 @@ class SpiderQueen(Arachnid):
         actions.Bite(damage=(4, 8)),
         actions.EatCorpse(),
         actions.Jump(),
-        actions.LayEgg()
+        actions.LayEgg(),
+        actions.SpinCocoon(),
     )
     web_delay = 20
 
