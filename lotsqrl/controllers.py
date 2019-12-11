@@ -1,10 +1,8 @@
-import random
 import sys
-import time
 
 from bearlibterminal import terminal
 
-from lotsqrl import movement, tiles, utils
+from lotsqrl import inputmap, movement, tiles, utils
 from lotsqrl.gameobjects import GridTarget
 from lotsqrl.scenes.helpfile import draw_help_file
 from lotsqrl.teams import Team
@@ -47,6 +45,10 @@ class PlayerController(ActorController):
     # TODO The chosen action then needs a Selector
     # TODO This Selector can then be fed by using the behavior for NPCS
     # TODO but will have to bed fed manually by input for the player
+    def __init__(self, host):
+        super().__init__(host)
+        self.actor_input_map = host.input_map()
+        self.system_input_map = inputmap.SystemMapping()
     
     def act(self):
         host = self.host
@@ -55,25 +57,23 @@ class PlayerController(ActorController):
         if move_action is not None:
             host.moved = move_action(host)
 
-        if press == terminal.TK_E:
-            host.moved = self.try_eat()
-        elif press == terminal.TK_L:
-            host.moved = self.host.actions.try_execute("lay_egg")
-        elif press == terminal.TK_J:
-            host.moved = self.jump()
-        elif press == terminal.TK_KP_5:
-            host.moved = True
-        elif press == terminal.TK_F:
-            host.moved = self.fire_web()
-        elif press == terminal.TK_CLOSE:
-            sys.exit()
-        elif press == terminal.TK_F1:
-            draw_help_file()
-        elif press == terminal.TK_ESCAPE:
-            if host.game.game_won:
-                host.game.should_restart = True
-                return
-    
+        action_name = self.actor_input_map.get(press)
+        if action_name is not None:
+            # TODO The selectors must be applied here, can't execute right away
+            # host.moved = self.host.actions.try_execute(action_name)
+        else:
+            # TODO System actions must not be implemented here, only mapped
+            system_input = self.system_input_map.get(press)
+            if system_input == "exit_game":
+                sys.exit()
+            elif system_input == "open_manual":
+                draw_help_file()
+            elif system_input == "new_game":
+                if host.game.game_won:
+                    host.game.should_restart = True
+                    return
+
+
     def fire_web(self):
         # TODO This has been simplified
         # TODO It will need an Animator, Selector to properly behave
