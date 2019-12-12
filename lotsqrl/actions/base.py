@@ -6,6 +6,7 @@ from lotsqrl import utils
 class Action(object):
     base_cooldown = 0
     name = ""
+    selectors = None
 
     def __init__(self, cooldown=None):
         self.cooldown = cooldown or self.base_cooldown

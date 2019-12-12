@@ -1,6 +1,6 @@
 import random
 
-from lotsqrl import movement, tiles, utils
+from lotsqrl import movement, tiles, selectors, utils
 from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
 from lotsqrl.teams import ActorTypes, Team
 
@@ -20,6 +20,12 @@ class Bite(MeleeAttack):
 
 class BurrowEgg(TouchAction):
     name = "burrow_egg"
+    selectors = (
+        selectors.TouchDirectional(
+            "Press direction to burrow into a cocoon",
+            filters=(selectors.filters.OnlyCocoons(),)
+        )
+    )
 
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
@@ -47,6 +53,12 @@ class BurrowEgg(TouchAction):
 class EatCorpse(TouchAction):
     name = "eat_corpse"
     base_heal = 5
+    selectors = (
+        selectors.TouchDirectional(
+            "Press direction to eat corpse",
+            filters=(selectors.filters.OnlyCorpses(),)
+        )
+    )
 
     def __init__(self, heal=None, reach=None):
         super().__init__(reach)

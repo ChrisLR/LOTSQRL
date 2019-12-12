@@ -1,5 +1,6 @@
 from bearlibterminal import terminal
 
+
 class InputMapping(object):
     _mapping = {}
 

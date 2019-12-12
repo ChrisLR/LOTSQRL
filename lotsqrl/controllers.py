@@ -59,8 +59,7 @@ class PlayerController(ActorController):
 
         action_name = self.actor_input_map.get(press)
         if action_name is not None:
-            # TODO The selectors must be applied here, can't execute right away
-            # host.moved = self.host.actions.try_execute(action_name)
+            host.moved = self.host.actions.try_execute(action_name)
         else:
             # TODO System actions must not be implemented here, only mapped
             system_input = self.system_input_map.get(press)
@@ -135,18 +134,3 @@ class PlayerController(ActorController):
         target = GridTarget(host.x + ox, host.y + oy)
         return host.actions.try_execute('jump', target)
 
-    def try_eat(self):
-        host = self.host
-        host.game.add_message("Press direction to eat corpse", show_now=True)
-        offset = utils.get_directional_pos()
-        if offset is None:
-            host.game.add_message("Cancelled", show_now=True)
-            return False
-
-        tx, ty = host.x + offset[0], host.y + offset[1]
-        targets = host.level.get_actors_by_pos(tx, ty, team=Team.Corpse)
-        if targets:
-            return host.actions.try_execute('eat_corpse', targets[0])
-
-        host.game.add_message("No corpses there.", show_now=True)
-        return False

@@ -1,3 +1,6 @@
+from lotsqrl.selectors import CANCELLED
+
+
 class Action(object):
     def __init__(self, host, base_actions):
         self.host = host
@@ -40,6 +43,16 @@ class Action(object):
         """
         action = self.actions.get(name)
         if action is not None:
+            if target is None and action.selectors and self.host.is_player:
+                target = []
+                for selector in action.selectors:
+                    result = selector.get(self.host)
+                    if result is CANCELLED:
+                        self.host.game.add_message("Cancelled.")
+                        return False
+                    else:
+                        target.extend(result)
+
             host = self.host
             can_execute = action.can_execute(host, target)
             if can_execute:

@@ -1,4 +1,4 @@
-from lotsqrl import actions, behaviors, controllers
+from lotsqrl import actions, behaviors, controllers, inputmap
 from lotsqrl.actors.base import Actor
 from lotsqrl.score import Score
 from lotsqrl.teams import Team, ActorTypes
@@ -103,6 +103,7 @@ class SpiderQueen(Arachnid):
         actions.LayEgg(),
         actions.SpinCocoon(),
     )
+    input_map = inputmap.SpiderQueen
     web_delay = 20
 
     def __init__(self, game, x, y):

@@ -16,3 +16,5 @@ class ActorTypes(IntEnum):
     SpiderQueen = 5
     Goblin = 6
     GoblinChief = 7
+
+
