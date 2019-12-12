@@ -1,5 +1,7 @@
-from lotsqrl.selectors.base import Selector, CANCELLED
+from bearlibterminal import terminal
+
 from lotsqrl import utils
+from lotsqrl.selectors.base import Selector
 
 
 class TouchDirectional(Selector):
@@ -7,7 +9,7 @@ class TouchDirectional(Selector):
         offset = utils.get_directional_pos()
         if offset is None:
             actor.game.add_message("Cancelled", show_now=True)
-            return CANCELLED
+            return terminal.TK_INPUT_CANCELLED
 
         ox, oy = offset
         targets = actor.level.get_actors_by_pos(actor.x + ox, actor.y + oy)
@@ -25,7 +27,7 @@ class LineDirectional(Selector):
         offset = utils.get_directional_pos()
         if offset is None:
             actor.game.add_message("Cancelled", show_now=True)
-            return CANCELLED
+            return terminal.TK_INPUT_CANCELLED
 
         target_line = utils.get_target_line(actor, GridTarget(max_web_x, max_web_y))
         targets = utils.get_obstacles_in_target_line(target_line)

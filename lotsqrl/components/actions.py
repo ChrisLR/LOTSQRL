@@ -1,4 +1,4 @@
-from lotsqrl.selectors import CANCELLED
+from bearlibterminal import terminal
 
 
 class Action(object):
@@ -47,7 +47,7 @@ class Action(object):
                 target = []
                 for selector in action.selectors:
                     result = selector.get(self.host)
-                    if result is CANCELLED:
+                    if result is terminal.TK_INPUT_CANCELLED:
                         self.host.game.add_message("Cancelled.")
                         return False
                     else:
