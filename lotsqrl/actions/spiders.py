@@ -24,7 +24,7 @@ class BurrowEgg(TouchAction):
         selectors.TouchDirectional(
             "Press direction to burrow into a cocoon",
             filters=(selectors.filters.OnlyCocoons(),)
-        )
+        ),
     )
 
     def can_execute(self, actor, target):
@@ -57,7 +57,7 @@ class EatCorpse(TouchAction):
         selectors.TouchDirectional(
             "Press direction to eat corpse",
             filters=(selectors.filters.OnlyCorpses(),)
-        )
+        ),
     )
 
     def __init__(self, heal=None, reach=None):
@@ -67,6 +67,7 @@ class EatCorpse(TouchAction):
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
+            actor.game.player_message(actor, "There is no edible corpse there.")
             return base_result
 
         if target.actor_type != ActorTypes.Corpse:
@@ -101,6 +102,7 @@ class Jump(Action):
     def __init__(self, cooldown=None, reach=None):
         super().__init__(cooldown)
         self.reach = reach or self.base_reach
+        self.selectors = (selectors.GridPointDirectional(self.reach, "Press direction to jump"),)
 
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
@@ -154,7 +156,7 @@ class LayEgg(Action):
     name = "lay_egg"
 
     def can_execute(self, actor, target):
-        base_result = super().can_execute(actor, target)
+        base_result = super().can_execute(actor, actor)
         if not base_result:
             return base_result
 
@@ -180,15 +182,23 @@ class SpinCocoon(Action):
     base_cooldown = 20
     base_reach = 3
     name = "spin_cocoon"
+    targets = 1
 
     def __init__(self, cooldown=None, reach=None):
         super().__init__(cooldown)
         self.reach = reach or self.base_reach
         self.target_line = None
+        self.selectors = (
+            selectors.LineDirectional(
+                self.reach, "Press direction to spin a creature into a cocoon",
+                (selectors.filters.OnlyEnemies(),)
+            ),
+        )
 
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
+            actor.game.player_message(actor, "No enemy there.")
             return base_result
 
         if target.team != Team.Goblin:
@@ -234,5 +244,7 @@ class SpinCocoon(Action):
             level.remove_actor(target)
             level.add_actor(Cocoon(game, new_x, new_y))
             self.apply_cooldown(actor)
+            if actor.score is not None:
+                actor.score.webs_fired += 1
 
         return True

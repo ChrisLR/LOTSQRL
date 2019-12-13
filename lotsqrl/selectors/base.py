@@ -4,9 +4,12 @@ class Selector(object):
         self.message = message
 
     def get(self, actor):
-        pass
+        self.show_message(actor)
 
     def _filter(self, actor, targets):
+        if not self.filters:
+            return targets
+
         filtered_targets = targets
         for filter in self.filters:
             filtered_targets = filter.filter(actor, filtered_targets)

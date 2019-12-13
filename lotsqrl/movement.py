@@ -51,6 +51,10 @@ def move_northwest(actor):
     return move_to(actor, actor.x - 1, actor.y - 1)
 
 
+def wait(actor):
+    return True
+
+
 def move_to(actor, x, y, bump=True):
     level = actor.level
     if not level:
@@ -77,7 +81,8 @@ move_actions = {
     terminal.TK_KP_2: move_south,
     terminal.TK_KP_1: move_southwest,
     terminal.TK_KP_4: move_west,
-    terminal.TK_KP_7: move_northwest
+    terminal.TK_KP_7: move_northwest,
+    terminal.TK_KP_5: wait
 }
 
 
