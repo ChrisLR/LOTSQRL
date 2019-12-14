@@ -17,11 +17,6 @@ def get_directional_delta(actor, target):
     return sign(x), sign(y)
 
 
-@property
-def lazy_getattr(object, attribute):
-    return getattr(object, attribute)
-
-
 def sign(number):
     if number > 0:
         return 1
