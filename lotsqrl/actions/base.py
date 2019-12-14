@@ -6,6 +6,8 @@ from lotsqrl import utils
 class Action(object):
     base_cooldown = 0
     name = ""
+    selectors = None
+    targets = 1
 
     def __init__(self, cooldown=None):
         self.cooldown = cooldown or self.base_cooldown
@@ -24,6 +26,10 @@ class Action(object):
         :return: Tells if an action is executable or not
         :rtype bool:
         """
+        if target is None:
+            actor.game.player_message(actor, "No enemy there.")
+            return False
+        
         cooldown = actor.cooldowns.get(self.name)
         if cooldown:
             actor.game.player_message(actor, "You need to wait %s more rounds." % cooldown)
@@ -90,6 +96,9 @@ class TouchAction(Action):
         self.reach = reach or self.base_reach
 
     def can_execute(self, actor, target):
+        if target is None:
+            return False
+
         distance = utils.get_distance(actor, target)
         if distance <= self.reach:
             return True

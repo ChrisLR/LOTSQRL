@@ -45,7 +45,7 @@ class GameScene(object):
         terminal.printf(11, 1, "Cooldowns")
         terminal.printf(11, 2, "Egg:%s" % player.cooldowns.get("lay_egg"))
         terminal.printf(11, 3, "Jump:%s" % player.cooldowns.get("jump"))
-        terminal.printf(11, 4, "Web:%s" % player.cooldowns.get("web"))
+        terminal.printf(11, 4, "Web:%s" % player.cooldowns.get("spin_cocoon"))
 
         terminal.printf(30, 1, "Kills:%s" % player.score.kills)
         terminal.printf(30, 2, "Eggs Laid:%s" % player.score.eggs_laid)

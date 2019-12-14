@@ -1,3 +1,6 @@
+from bearlibterminal import terminal
+
+
 class Action(object):
     def __init__(self, host, base_actions):
         self.host = host
@@ -40,6 +43,21 @@ class Action(object):
         """
         action = self.actions.get(name)
         if action is not None:
+            if target is None and action.selectors and self.host.is_player:
+                targets = []
+                for selector in action.selectors:
+                    result = selector.get(self.host)
+                    if result is terminal.TK_INPUT_CANCELLED:
+                        self.host.game.add_message("Cancelled.")
+                        return False
+                    else:
+                        targets.extend(result)
+
+                if action.targets == 1:
+                    target = targets[0] if targets else None
+                else:
+                    target = targets
+
             host = self.host
             can_execute = action.can_execute(host, target)
             if can_execute:
