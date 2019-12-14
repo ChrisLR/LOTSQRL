@@ -198,7 +198,6 @@ class SpinCocoon(Action):
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
-            actor.game.player_message(actor, "No enemy there.")
             return base_result
 
         if target.team != Team.Goblin:

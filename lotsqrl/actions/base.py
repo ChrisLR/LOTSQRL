@@ -27,6 +27,7 @@ class Action(object):
         :rtype bool:
         """
         if target is None:
+            actor.game.player_message(actor, "No enemy there.")
             return False
         
         cooldown = actor.cooldowns.get(self.name)
