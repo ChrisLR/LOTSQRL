@@ -88,7 +88,7 @@ def get_obstacles_in_target_line(target_line, include_walls=True, include_actors
 
         if include_actors:
             actors = [a for a in level.get_actors_by_pos(x, y)
-                      if a is not actor and a is not target]
+                      if a is not actor and a is not target and a.blocking]
             obstacles.extend(actors)
 
     return obstacles
