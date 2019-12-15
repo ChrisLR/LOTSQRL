@@ -1,4 +1,5 @@
 from lotsqrl.actions.base import MeleeAttack
+from lotsqrl.messages import MessageScope
 
 
 class Stab(MeleeAttack):
@@ -7,7 +8,12 @@ class Stab(MeleeAttack):
 
     def on_hit(self, actor, target):
         game = actor.game
-        game.add_message(actor.name + " stabs %s!" % target.name)
+        game.messaging.add_scoped_message(
+            message_actor=f"You stab {target.name}!",
+            message_target=f"{actor.name} stabs you!",
+            message_others=f"{actor.name} stabs {target.name}!",
+            actor=actor, target=target, scope=MessageScope.TargetsPlayer
+        )
         super().on_hit(actor, target)
 
 
@@ -23,7 +29,12 @@ class Headbutt(MeleeAttack):
 
     def on_hit(self, actor, target):
         game = actor.game
-        game.add_message(actor.name + " headbutts %s!" % target.name)
+        game.messaging.add_scoped_message(
+            message_actor=f"You headbutt {target.name}!",
+            message_target=f"{actor.name} headbutts you!",
+            message_others=f"{actor.name} headbutts {target.name}!",
+            actor=actor, target=target, scope=MessageScope.TargetsPlayer
+        )
         super().on_hit(actor, target)
         self.apply_cooldown(actor)
         target.stunned = True
@@ -35,5 +46,10 @@ class Slice(MeleeAttack):
 
     def on_hit(self, actor, target):
         game = actor.game
-        game.add_message(actor.name + " slices %s!" % target.name)
+        game.messaging.add_scoped_message(
+            message_actor=f"You slice {target.name}!",
+            message_target=f"{actor.name} slices you!",
+            message_others=f"{actor.name} slices {target.name}!",
+            actor=actor, target=target, scope=MessageScope.TargetsPlayer
+        )
         super().on_hit(actor, target)

@@ -60,3 +60,7 @@ class GoblinChief(Actor):
         if self.headbutt_cooldown == 0:
             return self.actions.try_execute("headbutt", target)
         return self.actions.try_execute("slice", target)
+
+    def on_death(self):
+        self.game.messaging.add_system_message("The boss has been killed!")
+        super().on_death()

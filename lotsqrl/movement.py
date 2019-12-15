@@ -6,6 +6,7 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder.a_star import AStarFinder
 
 from lotsqrl import tiles, utils
+from lotsqrl.messages import MessageScope
 
 
 def avoid_obstacle(actor, target, offset_x, offset_y):
@@ -128,7 +129,11 @@ def step_to_target(actor, target):
         return success
     else:
         actor.level.remove_tile(tx, ty)
-        actor.game.add_message(actor.name + " digs through rock.")
+        actor.game.messaging.add_scoped_message(
+            message_others=actor.name + " digs through rock.",
+            scope=MessageScope.All,
+            actor=actor
+        )
         return True
 
 

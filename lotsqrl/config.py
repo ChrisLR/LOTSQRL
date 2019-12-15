@@ -43,6 +43,7 @@ class MainOptions(ConfigurableOptions):
         OptionField('graphical_tiles', True, parse_bool),
         OptionField('map_width', 25, int),
         OptionField('map_height', 25, int),
+        OptionField('msg_scope', 0, int),
     )
 
 

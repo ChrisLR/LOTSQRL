@@ -1,5 +1,6 @@
 from lotsqrl import components, controllers
 from lotsqrl.gameobjects import GameObject, Corpse
+from lotsqrl.messages import MessageScope
 
 
 class Actor(GameObject):
@@ -36,10 +37,12 @@ class Actor(GameObject):
         self.dead = True
         self.display_char = "%"
         self.display_priority = 10
-        if self.is_player:
-            self.game.add_message("You are dead!")
-        else:
-            self.game.add_message(self.name + " is dead!")
+        self.game.messaging.add_scoped_message(
+            message_actor="You are dead!",
+            message_others=f"{self.name} is dead!",
+            scope=MessageScope.TargetsPlayer,
+            actor=self
+        )
         corpse = Corpse(self.game, self.name, self.x, self.y)
         self.game.level.remove_actor(self)
         self.game.level.add_actor(corpse)

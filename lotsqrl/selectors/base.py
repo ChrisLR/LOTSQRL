@@ -18,4 +18,4 @@ class Selector(object):
 
     def show_message(self, actor):
         if self.message:
-            actor.game.add_message(self.message, show_now=True)
+            actor.game.messaging.add_system_message(self.message, show_now=True)

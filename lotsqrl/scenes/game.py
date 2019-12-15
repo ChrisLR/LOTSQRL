@@ -21,7 +21,7 @@ class GameScene(object):
         terminal.printf(0, screen_height - 1, "-" * screen_width)
         y_offset = top_gui_height + game_area_height + 3
 
-        messages = self.game.messages
+        messages = self.game.messaging.messages
         message_log_height = screen_info.message_log_height - 4
         for i, message in enumerate(messages[-message_log_height::]):
             terminal.printf(1, y_offset + i, message)

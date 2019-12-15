@@ -9,7 +9,6 @@ class TouchDirectional(Selector):
         super().get(actor)
         offset = utils.get_directional_pos()
         if offset is None:
-            actor.game.add_message("Cancelled", show_now=True)
             return terminal.TK_INPUT_CANCELLED
 
         ox, oy = offset
@@ -28,7 +27,6 @@ class LineDirectional(Selector):
         super().get(actor)
         offset = utils.get_directional_pos()
         if offset is None:
-            actor.game.add_message("Cancelled", show_now=True)
             return terminal.TK_INPUT_CANCELLED
 
         ox, oy = offset
@@ -53,7 +51,6 @@ class GridPointDirectional(Selector):
         super().get(actor)
         offset = utils.get_directional_pos()
         if offset is None:
-            actor.game.add_message("Cancelled", show_now=True)
             return terminal.TK_INPUT_CANCELLED
 
         ox, oy = offset
