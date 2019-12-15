@@ -1,4 +1,4 @@
-from lotsqrl import actions, behaviors, controllers, inputmap
+from lotsqrl import actions, behaviors, components, controllers, inputmap
 from lotsqrl.actors.base import Actor
 from lotsqrl.score import Score
 from lotsqrl.teams import Team, ActorTypes
@@ -51,6 +51,10 @@ class Arachnid(Actor):
     ascii_color = "red"
     base_actions = (actions.Bite(), actions.EatCorpse())
     bite_damage_range = (1, 4)
+
+    def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
+        super().__init__(game, hp, display_char, name, x, y, team)
+        self.evolution = components.Evolution(self,)
 
 
 class Spiderling(Arachnid):

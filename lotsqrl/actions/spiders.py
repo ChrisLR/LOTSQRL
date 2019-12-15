@@ -55,6 +55,53 @@ class BurrowEgg(TouchAction):
         return True
 
 
+class ConsumeMinion(TouchAction):
+    name = "consume_minion"
+    selectors = (
+        selectors.TouchDirectional(
+            "Press direction to consume minion",
+            filters=(selectors.filters.OnlyEnemies(),)
+        ),
+    )
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            actor.game.messaging.add_scoped_message(
+                message_actor="There is no minion there.",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
+            return base_result
+
+        if target.team != Team.SpiderQueen:
+            actor.game.messaging.add_scoped_message(
+                message_actor="You can only consume your own minions.",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
+            return False
+
+        return True
+
+    def execute(self, actor, target):
+        if actor.score is not None:
+            actor.score.corpses_eaten += 1
+
+        actor.game.messaging.add_scoped_message(
+            message_actor=f"You eat {target.name}!",
+            message_target=f"{actor.name} eats you!",
+            message_others=f"{actor.name} eats {target.name}!",
+            actor=actor, target=target, scope=MessageScope.TargetsPlayer
+        )
+        actor.level.remove_actor(target)
+        actor.target = None
+        if actor.hp + self.heal <= actor.max_hp:
+            actor.hp += self.heal
+        else:
+            actor.hp = actor.max_hp
+
+        return True
+
+
 class EatCorpse(TouchAction):
     name = "eat_corpse"
     base_heal = 5
@@ -99,6 +146,10 @@ class EatCorpse(TouchAction):
             actor.hp += self.heal
         else:
             actor.hp = actor.max_hp
+
+        evolution = actor.evolution
+        if evolution is not None:
+            evolution.consume(target)
 
         return True
 

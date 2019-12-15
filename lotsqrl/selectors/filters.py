@@ -18,6 +18,18 @@ class OnlyEnemies(Filter):
         return filter(lambda t: t.team == enemy_team, targets)
 
 
+class OnlyAllies(Filter):
+    # TODO This relation does not belong here
+    alliance_map = {
+        teams.Team.SpiderQueen: teams.Team.SpiderQueen,
+        teams.Team.Goblin: teams.Team.Goblin
+    }
+
+    def filter(self, actor, targets):
+        ally_team = self.alliance_map.get(actor.team)
+        return filter(lambda t: t.team == ally_team, targets)
+
+
 class OnlyCorpses(Filter):
     def filter(self, actor, targets):
         corpse_team = teams.Team.Corpse
