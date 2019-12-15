@@ -48,7 +48,7 @@ class Action(object):
                 for selector in action.selectors:
                     result = selector.get(self.host)
                     if result is terminal.TK_INPUT_CANCELLED:
-                        self.host.game.add_message("Cancelled.")
+                        self.host.game.messaging.add_system_message("Cancelled.")
                         return False
                     else:
                         targets.extend(result)

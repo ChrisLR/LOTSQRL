@@ -27,12 +27,12 @@ class Action(object):
         :rtype bool:
         """
         if target is None:
-            actor.game.player_message(actor, "No enemy there.")
+            actor.game.messaging.add_player_message("No enemy there.", actor)
             return False
         
         cooldown = actor.cooldowns.get(self.name)
         if cooldown:
-            actor.game.player_message(actor, "You need to wait %s more rounds." % cooldown)
+            actor.game.messaging.add_player_message(f"You need to wait {cooldown} more rounds.", actor)
             return False
         return True
 

@@ -3,6 +3,7 @@ import random
 from lotsqrl import movement, tiles, selectors, utils
 from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
 from lotsqrl.teams import ActorTypes, Team
+from lotsqrl.messages import MessageScope
 
 
 class Bite(MeleeAttack):
@@ -11,10 +12,13 @@ class Bite(MeleeAttack):
 
     def on_hit(self, actor, target):
         game = actor.game
-        if actor.is_player:
-            game.add_message("You bite %s!" % target.name)
-        else:
-            game.add_message(actor.name + " bites %s!" % target.name)
+        game.messaging.add_scoped_message(
+            message_actor=f"You bite {target.name}!",
+            message_target=f"{actor.name} bites you!",
+            message_others=f"{target.name} bites {actor.name}!",
+            scope=MessageScope.TargetsPlayer,
+            actor=actor, target=target
+        )
         super().on_hit(actor, target)
 
 
@@ -39,11 +43,12 @@ class BurrowEgg(TouchAction):
 
     def execute(self, actor, target):
         game = actor.game
-        if actor.is_player:
-            game.add_message("You burrow into %s!" % target.name)
-        else:
-            game.add_message("%s burrows into %s!" % (actor.name, target.name))
-
+        game.messaging.add_scoped_message(
+            message_actor=f"You burrow into {target.name}!",
+            message_target=f"{actor.name} burrows into you!",
+            message_others=f"{actor.name} burrows into {target.name}!",
+            actor=actor, target=target, scope=MessageScope.All
+        )
         target.burrowed = True
         actor.level.remove_actor(actor)
 
@@ -67,7 +72,10 @@ class EatCorpse(TouchAction):
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
         if not base_result:
-            actor.game.player_message(actor, "There is no edible corpse there.")
+            actor.game.messaging.add_scoped_message(
+                message_actor="There is no edible corpse there.",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
             return base_result
 
         if target.actor_type != ActorTypes.Corpse:
@@ -79,11 +87,12 @@ class EatCorpse(TouchAction):
         if actor.score is not None:
             actor.score.corpses_eaten += 1
 
-        if actor.is_player:
-            actor.game.add_message("You eat %s !" % target.name)
-        else:
-            actor.game.add_message("%s eats %s !" % (actor.name, target.name))
-
+        actor.game.messaging.add_scoped_message(
+            message_actor=f"You eat {target.name}!",
+            message_target=f"{actor.name} eats you!",
+            message_others=f"{actor.name} eats {target.name}!",
+            actor=actor, target=target, scope=MessageScope.TargetsPlayer
+        )
         actor.level.remove_actor(target)
         actor.target = None
         if actor.hp + self.heal <= actor.max_hp:
@@ -121,15 +130,18 @@ class Jump(Action):
         x, y = target.x, target.y
         level = actor.level
         game = actor.game
+        messaging = game.messaging
         if level.get_tile(x, y) == tiles.CaveFloor:
             collides = level.get_actors_by_pos(x, y)
             collisions = [collide for collide in collides if collide is not self and collide.blocking]
             if collisions:
                 collision_names = ','.join((collision.name for collision in collisions))
-                if actor.is_player:
-                    game.add_message("You leap into %s !" % collision_names)
-                else:
-                    game.add_message("%s leaps into %s" % (actor.name, collision_names))
+                messaging.add_scoped_message(
+                    message_actor=f"You leap into {collision_names}!",
+                    message_target=f"{actor.name} leaps into {collision_names}!",
+                    message_others=f"{actor.name} leaps into {collision_names}!",
+                    actor=actor, targets=collisions, scope=MessageScope.TargetsPlayer
+                )
 
                 dx, dy = utils.get_actor_delta(actor, collisions[0])
                 dx = utils.sign(dx) * 2
@@ -139,7 +151,12 @@ class Jump(Action):
                     collision.hp -= random.randint(1, 3)
                     moved = movement.move_to(collision, collision.x + dx, collision.y + dy, bump=False)
                     if moved is False and collision is not game.boss:
-                        game.add_message("%s is crushed under %s!" % (collision.name, actor.name))
+                        messaging.add_scoped_message(
+                            message_actor=f"You crush {collision.name} under you!",
+                            message_target=f"You are crushed under {actor.name}!",
+                            message_others=f"{collision.name} is crushed under {actor.name}!",
+                            actor=actor, target=collision, scope=MessageScope.TargetsPlayer
+                        )
                         collision.on_death()
                         if actor.score is not None:
                             actor.score.enemies_crushed += 1
@@ -166,11 +183,11 @@ class LayEgg(Action):
         # TODO This is bad, do it better
         from lotsqrl.actors import Egg
         game = actor.game
-        if actor.is_player:
-            game.add_message("You lay an egg.")
-        else:
-            game.add_message("%s lays an egg." % actor.name)
-
+        game.messaging.add_scoped_message(
+            message_actor="You lay an egg.",
+            message_others=f"{actor.name} lays an egg.",
+            actor=actor, scope=MessageScope.TargetsPlayer
+        )
         new_egg = Egg(actor.game, actor.x, actor.y)
         actor.level.add_actor(new_egg)
         actor.cooldowns.set(self.name, self.base_cooldown)
@@ -201,7 +218,7 @@ class SpinCocoon(Action):
             return base_result
 
         if target.team != Team.Goblin:
-            actor.game.player_message(actor, "That wouldn't make a nutritious meal.")
+            actor.game.messaging.add_player_message("That wouldn't make a nutritious meal.", actor)
             return False
 
         dist = utils.get_distance(actor, target)
@@ -219,25 +236,23 @@ class SpinCocoon(Action):
         from lotsqrl.actors import Cocoon
 
         game = actor.game
+        messaging = game.messaging
         level = actor.level
-        is_player = actor.is_player
         if target == actor.game.boss:
-            if is_player:
-                game.add_message(
-                    f"You try to ensnare {target.name} in your web "
-                    f"but it pulls strong and resists.")
-            else:
-                game.add_message(
-                    f"{actor.name} tries to ensnare {target.name} in it's web "
-                    f"but it pulls strong and resists.")
+            messaging.add_scoped_message(
+                message_actor=f"You try to ensnare {target.name} in your web but it resists!",
+                message_target=f"{actor.name} tries to ensnare you but you resist!",
+                message_others=f"{actor.name} tries to ensnare {target.name} but it resists!",
+                actor=actor, target=target, scope=MessageScope.TargetsPlayer
+            )
         else:
-            if actor.is_player:
-                game.add_message(f"You snatch {target.name} with your web, "
-                                 f"pulling and spinning it into a cocoon!")
-            else:
-                game.add_message(f"{actor.name} snatches {target.name} with it's web, "
-                                 f"pulling and spinning it into a cocoon!")
-
+            messaging.add_scoped_message(
+                message_actor=f"You snatch {target.name} with your web, pulling and spinning it into a cocoon!",
+                message_target=f"{actor.name} snatches you with its web, pulling and spinning you into a cocoon!",
+                message_others=f"{actor.name} snatches {target.name} with its web, "
+                               f"pulling and spinning it into a cocoon!",
+                actor=actor, target=target, scope=MessageScope.TargetsPlayer
+            )
             new_x, new_y = utils.get_closest_floor_in_line(self.target_line)
             target.dead = True
             level.remove_actor(target)

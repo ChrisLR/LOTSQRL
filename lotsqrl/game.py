@@ -7,6 +7,7 @@ from lotsqrl import actors, automata, controllers, tiles
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
 from lotsqrl.teams import Team
+from lotsqrl.messages import Messaging
 
 
 class Game(object):
@@ -18,22 +19,12 @@ class Game(object):
         self.game_won = False
         self.options = options
         self.screen_info = screen_info
-        self.messages = []
         self.level = None
         self.running = False
         self.should_restart = False
         self.scene = GameScene(self, screen_info)
         self.turn = 0
-
-    def add_message(self, message, show_now=False):
-        self.messages.append(message)
-        if show_now:
-            self.scene.update_messages()
-            terminal.refresh()
-
-    def player_message(self, actor, message, show_now=False):
-        if actor.is_player:
-            self.add_message(message, show_now)
+        self.messaging = Messaging(self, self.options.msg_scope)
 
     def prepare(self):
         automata_steps = 4  # Usually gives a nice layout
