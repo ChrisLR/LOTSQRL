@@ -1,4 +1,4 @@
-from lotsqrl import actions, behaviors, components, controllers, inputmap
+from lotsqrl import actions, behaviors, components, controllers, evolutions, inputmap
 from lotsqrl.actors.base import Actor
 from lotsqrl.score import Score
 from lotsqrl.teams import Team, ActorTypes
@@ -54,7 +54,7 @@ class Arachnid(Actor):
 
     def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
         super().__init__(game, hp, display_char, name, x, y, team)
-        self.evolution = components.Evolution(self,)
+        self.evolution = components.Evolution(self, None)
 
 
 class Spiderling(Arachnid):
@@ -114,6 +114,7 @@ class SpiderQueen(Arachnid):
         # TODO The image of the Spider Queen is bound to @
         # TODO This will cause issue if we ever start to have more than one
         super().__init__(game, 20, "@", "Spider Queen", x, y, team=Team.SpiderQueen)
+        self.evolution = components.Evolution(self, evolutions.create_spider_queen_evolution())
         self.is_player = True
         self.score = Score()
         self.moved = False
