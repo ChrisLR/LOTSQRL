@@ -1,23 +1,20 @@
 from lotsqrl.evolutions.base import EvolutionPlan, EvolutionNode
 
-""" 
-PLANNING 
 
-Abyssal Spider (Eggs are replaced by Abyssal Flies)
-    - Giant - Devouring Maw - Swallow Whole
-    - Thick Chitin - Spiked Chitin - Poisonous Hair
-    - Razor pincers - Bladed Legs - Hellish Charge
+def create_spider_queen_evolution():
+    abyssal = abyssal_nodes()
+    brood = brood_nodes()
+    rotting = rotting_nodes()
+    abyssal.add_exclude(brood)
+    abyssal.add_exclude(rotting)
+    brood.add_exclude(abyssal)
+    brood.add_exclude(rotting)
+    rotting.add_exclude(abyssal)
+    rotting.add_exclude(brood)
 
-Brood Mother (Typical Eggs)
-    - Egg Sac - Nourishing Cocoon -  
-    - Strong Web - Web Wall - Choking Web
-    - Telepath - Mind Scream - Shatter Mind
+    plan = EvolutionPlan([abyssal, brood, rotting])
 
-Rotting Spider (Parasitic Eggs)
-    - Bile Spit - Venomous Spit - Acidic spit
-    - Corpse Bomb - Corpse Walk - Animate Corpse
-    - Winged Parasite - Rotting Spores - Flight of Decay 
-"""
+    return plan
 
 
 def abyssal_nodes():
@@ -83,8 +80,7 @@ def abyssal_nodes():
     return abyssal
 
 
-def create_spider_queen_evolution():
-    abyssal = abyssal_nodes()
+def brood_nodes():
     brood = EvolutionNode(
         name="Brood Mother",
         description="Prime descendant of the fiercest broods of spiders.\n"
@@ -92,8 +88,61 @@ def create_spider_queen_evolution():
                     "This one of a kind Queen must be cautious not to be surrounded by enemies\n"
                     "and let her minions die for her.",
         cost=1,
-        children=[]
     )
+    egg_sac = EvolutionNode(
+        name="Egg Sac", cost=5,
+        description="Allows you to lay multiple eggs in quick succession.",
+    )
+    nourishing_cocoon = EvolutionNode(
+        name="Nourishing Cocoon",
+        description="You can spin a spiderling into a self sufficient cocoon.",
+        cost=5,
+    )
+    enhance_minion = EvolutionNode(
+        name="Enhance Minion", cost=5,
+        description="You can spin a Spider into another cocoon, enhancing it further.",
+    )
+    egg_sac.add_child(nourishing_cocoon)
+    nourishing_cocoon.add_child(enhance_minion)
+
+    strong_web = EvolutionNode(
+        name="Strong Web", cost=5,
+        description="The range of your webs increase to 10 tiles",
+    )
+    web_wall = EvolutionNode(
+        name="Web Wall", cost=5,
+        description="Spin a strong web trap that will hold enemies helpless until freed.",
+    )
+    choking_web = EvolutionNode(
+        name="Choking Web", cost=5,
+        description="Your webs are now covered in choking powder and helpless enemies will choke to death.",
+    )
+    strong_web.add_child(web_wall)
+    web_wall.add_child(choking_web)
+
+    telepath = EvolutionNode(
+        name="Telepath", cost=5,
+        description="Become psychic and able to recall your minions to you.",
+    )
+    mind_scream = EvolutionNode(
+        name="Mind Scream", cost=5,
+        description="You are able to scream into the mind of an enemy at great range, stunning them.",
+    )
+    mind_shatter = EvolutionNode(
+        name="Mind Shatter", cost=5,
+        description="Shatter your opponent's mind, leaving them permanently disabled.",
+    )
+    telepath.add_child(mind_scream)
+    mind_scream.add_child(mind_shatter)
+
+    brood.add_child(egg_sac)
+    brood.add_child(strong_web)
+    brood.add_child(telepath)
+
+    return brood
+
+
+def rotting_nodes():
     rotting = EvolutionNode(
         name="Rotting Spider",
         description="A necrotic spider reanimated by unholy powers.\n"
@@ -101,18 +150,56 @@ def create_spider_queen_evolution():
                     "This terrifying creature can only birth parasites which are injected\n"
                     "directly into its victims.\n",
         cost=1,
-        children=[]
     )
-    abyssal.add_exclude(brood)
-    abyssal.add_exclude(rotting)
-    brood.add_exclude(abyssal)
-    brood.add_exclude(rotting)
-    rotting.add_exclude(abyssal)
-    rotting.add_exclude(brood)
+    bile_spit = EvolutionNode(
+        name="Bile Spit", cost=5,
+        description="Allows you to spit thick bile into enemies, stunning them for a few rounds.",
+    )
+    venomous_spit = EvolutionNode(
+        name="Venomous Spit",
+        description="Spitting now poisons enemies instead, damning them to a slow death.",
+        cost=5,
+    )
+    acidic_spit = EvolutionNode(
+        name="Acidic Spit", cost=5,
+        description="Your spit is now burning acid, making enemies mad with pain causing them to berserk.",
+    )
+    bile_spit.add_child(venomous_spit)
+    venomous_spit.add_child(acidic_spit)
 
-    plan = EvolutionPlan([abyssal, brood, rotting])
+    corpse_bomb = EvolutionNode(
+        name="Corpse Bomb", cost=5,
+        description="Condense Necrotic energies into a corpse, making it explode killing any nearby.",
+    )
+    corpse_walk = EvolutionNode(
+        name="Corpse Walk", cost=5,
+        description="Entering a nearby corpse allows you to teleport to any other within the map.",
+    )
+    animate_corpse = EvolutionNode(
+        name="Animate Corpse", cost=5,
+        description="You are able to reanimate corpses, making them great meat shields.",
+    )
+    corpse_bomb.add_child(corpse_walk)
+    corpse_walk.add_child(animate_corpse)
 
-    return plan
+    winged_parasites = EvolutionNode(
+        name="Winged Parasites", cost=5,
+        description="You can now launch your parasites straight into your victims from a distance.",
+    )
+    rotting_spores = EvolutionNode(
+        name="Rotting Spores", cost=5,
+        description="Infested enemies now exhale rotting spores, damaging any nearby enemies.",
+    )
+    flight_of_decay = EvolutionNode(
+        name="Flight of Decay", cost=5,
+        description="Your parasites now leave a trail of rotting spores behind, "
+                    "rapidly killing any foe breathing it.",
+    )
+    winged_parasites.add_child(rotting_spores)
+    rotting_spores.add_child(flight_of_decay)
 
+    rotting.add_child(bile_spit)
+    rotting.add_child(corpse_bomb)
+    rotting.add_child(winged_parasites)
 
-
+    return rotting
