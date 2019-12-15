@@ -15,7 +15,7 @@ class Bite(MeleeAttack):
         game.messaging.add_scoped_message(
             message_actor=f"You bite {target.name}!",
             message_target=f"{actor.name} bites you!",
-            message_others=f"{target.name} bites {actor.name}!",
+            message_others=f"{actor.name} bites {target.name}!",
             scope=MessageScope.TargetsPlayer,
             actor=actor, target=target
         )
