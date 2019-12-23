@@ -3,6 +3,9 @@ pipeline {
     stages {
         stage('build') {
             steps {
+                sh 'python3 -m pip install --user virtualenv'
+                sh 'virtualenv venv --distribute'
+                sh 'source venv/bin/activate'
                 sh 'pip install -r requirements.txt'
                 sh 'pyinstaller -D main.py'
             }
