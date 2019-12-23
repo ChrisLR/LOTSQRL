@@ -3,13 +3,12 @@ Jenkinsfile (Declarative Pipeline)
 pipeline {
     agent { docker { image 'python:3.7.4' } }
     stages {
-        stage('install requirements'){
-            pip install -r requirements.txt
-        }
         stage('build') {
             steps {
+                pip install -r requirements.txt
                 pyinstaller -D main.py
             }
+        }
         stage('copy') {
             steps {
                 cp manual.txt dist/
