@@ -5,15 +5,15 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                pip install -r requirements.txt
-                pyinstaller -D main.py
+                sh 'pip install -r requirements.txt'
+                sh 'pyinstaller -D main.py'
             }
         }
         stage('copy') {
             steps {
-                cp manual.txt dist/
-                cp config.ini dist/
-                cp graphics/ dist/
+                sh 'cp manual.txt dist/'
+                sh 'cp config.ini dist/'
+                sh 'cp graphics/ dist/'
             }
         }
     }
