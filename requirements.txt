@@ -1,3 +1,4 @@
 bearlibterminal
 pathfinding
 pytest
+pyinstaller
