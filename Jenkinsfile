@@ -1,22 +1,17 @@
-
-Jenkinsfile (Declarative Pipeline)
 pipeline {
-    agent any
-
+    agent { docker { image 'python:3.7.4' } }
     stages {
-        stage('Build') {
+        stage('build') {
             steps {
-                echo 'Building..'
+                sh 'pip install -r requirements.txt'
+                sh 'pyinstaller -D main.py'
             }
         }
-        stage('Test') {
+        stage('copy') {
             steps {
-                echo 'Testing..'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                echo 'Deploying....'
+                sh 'cp manual.txt dist/'
+                sh 'cp config.ini dist/'
+                sh 'cp graphics/ dist/'
             }
         }
     }
