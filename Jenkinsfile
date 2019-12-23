@@ -3,7 +3,7 @@ Jenkinsfile (Declarative Pipeline)
 pipeline {
     agent { docker { image 'python:3.7.4' } }
     stages {
-        stage('install requirements){
+        stage('install requirements'){
             pip install -r requirements.txt
         }
         stage('build') {
