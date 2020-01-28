@@ -45,7 +45,7 @@ class Actor(GameObject):
             scope=MessageScope.TargetsPlayer,
             actor=self
         )
-        corpse = Corpse(self.game, self.name, self.x, self.y)
+        corpse = Corpse(self.game, self.name, self.x, self.y, evolution_worth=self.evolution_worth)
         self.game.level.remove_actor(self)
         self.game.level.add_actor(corpse)
 
