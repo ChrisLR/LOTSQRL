@@ -1,6 +1,8 @@
 from lotsqrl.evolutions.base import EvolutionPlan, EvolutionNode
 
 
+# TODO Make Plan Flatter, reduces complexity and increases visibility.
+
 def create_spider_queen_evolution():
     abyssal = abyssal_nodes()
     brood = brood_nodes()
