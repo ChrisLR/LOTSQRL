@@ -30,7 +30,8 @@ def abyssal_nodes():
     )
     giant = EvolutionNode(
         name="Giant", cost=5,
-        description="Grow into a monstrous size, doubles starting and max health",
+        description="Grow into a monstrous size.\n"
+                    "Doubles starting and max health",
     )
     devouring_maw = EvolutionNode(
         name="Devouring Maw",
