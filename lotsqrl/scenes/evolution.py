@@ -2,26 +2,35 @@ from functools import partial
 
 from bearlibterminal import terminal
 
+ACTIVE_TEXT_COLOR = "yellow"
 
-class StaticLabel(object):
-    def __init__(self, text, x, y):
+
+class Label(object):
+    def __init__(self, x, y, color=None, text=None):
+        self.x = x
+        self.y = y
+        self.color = color
         self.text = text
-        self.x = x
-        self.y = y
 
     def draw(self):
-        terminal.printf(self.x, self.y, self.text)
+        if not self.text:
+            return
+
+        if self.color:
+            colorized_text = f"[color={self.color}]{self.text}[/color]"
+            terminal.printf(self.x, self.y, colorized_text)
+        else:
+            terminal.printf(self.x, self.y, self.text)
 
 
-class DynamicLabel(object):
-    def __init__(self, getter, x, y):
+class DynamicLabel(Label):
+    def __init__(self, getter, x, y, color=None):
+        super().__init__(x, y, color)
         self.getter = getter
-        self.x = x
-        self.y = y
 
     def draw(self):
-        text = str(self.getter())
-        terminal.printf(self.x, self.y, text)
+        self.text = str(self.getter())
+        super().draw()
 
 
 class Tree(object):
@@ -54,12 +63,22 @@ class Tree(object):
         self.sub_node_max_width += self.root_max_width + 1
 
     def select_root_node(self, key):
+        if self.selected_root_node:
+            self.selected_root_node.color = None
+        if self.selected_sub_node:
+            self.selected_sub_node.color = None
+
         root_node = self.root_nodes[key]
         self.selected_root_node = root_node
         self.selected_sub_node = self.sub_nodes[root_node]["a"]
+        self.selected_root_node.color = ACTIVE_TEXT_COLOR
+        self.selected_sub_node.color = ACTIVE_TEXT_COLOR
 
     def select_sub_node(self, key):
+        if self.selected_sub_node:
+            self.selected_sub_node.color = None
         self.selected_sub_node = self.sub_nodes[self.selected_root_node][key]
+        self.selected_sub_node.color = ACTIVE_TEXT_COLOR
 
     def _create_sub_nodes(self, root_node, root_max_width):
         row = self.origin_y
@@ -80,15 +99,20 @@ class Tree(object):
 
 
 class TreeNode(object):
-    def __init__(self, node, x, y, key):
+    def __init__(self, node, x, y, key, color=None):
         self.node = node
         self.x = x
         self.y = y
         self.key = key
         self.draw_string = f"{self.key}) {self.node.name}"
+        self.color = color
 
     def draw(self):
-        terminal.printf(self.x, self.y, self.draw_string)
+        if self.color:
+            colorized_string = f"[color={self.color}]{self.draw_string}"
+            terminal.printf(self.x, self.y, colorized_string)
+        else:
+            terminal.printf(self.x, self.y, self.draw_string)
 
 
 def get_sub_node_attribute(tree, attribute):
@@ -101,18 +125,19 @@ class EvolutionScene(object):
         self.tree = Tree(self.actor.evolution.plan)
         sub_node_max_width = self.tree.sub_node_max_width
         self.ui_elements = [
-            StaticLabel("Category", 0, 0),
-            StaticLabel("Abilities", self.tree.root_max_width, 0),
-            StaticLabel("Name:", sub_node_max_width, 1),
+            Label("Category", 0, 0),
+            Label("Abilities", self.tree.root_max_width, 0),
+            Label("Name:", sub_node_max_width, 1),
             DynamicLabel(partial(get_sub_node_attribute, self.tree, 'name'), sub_node_max_width + 5, 1),
-            StaticLabel("Cost:", sub_node_max_width, 2),
+            Label("Cost:", sub_node_max_width, 2),
             DynamicLabel(partial(get_sub_node_attribute, self.tree, 'cost'), sub_node_max_width + 5, 2),
-            StaticLabel("Description:", sub_node_max_width, 3),
+            Label("Description:", sub_node_max_width, 3),
             DynamicLabel(partial(get_sub_node_attribute, self.tree, 'description'), sub_node_max_width + 5, 4)
         ]
 
     def draw(self):
         terminal.clear()
+
         self.tree.draw()
         for ui_element in self.ui_elements:
             ui_element.draw()
