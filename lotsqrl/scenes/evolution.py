@@ -2,35 +2,9 @@ from functools import partial
 
 from bearlibterminal import terminal
 
-ACTIVE_TEXT_COLOR = "yellow"
-
-
-class Label(object):
-    def __init__(self, x, y, color=None, text=None):
-        self.x = x
-        self.y = y
-        self.color = color
-        self.text = text
-
-    def draw(self):
-        if not self.text:
-            return
-
-        if self.color:
-            colorized_text = f"[color={self.color}]{self.text}[/color]"
-            terminal.printf(self.x, self.y, colorized_text)
-        else:
-            terminal.printf(self.x, self.y, self.text)
-
-
-class DynamicLabel(Label):
-    def __init__(self, getter, x, y, color=None):
-        super().__init__(x, y, color)
-        self.getter = getter
-
-    def draw(self):
-        self.text = str(self.getter())
-        super().draw()
+from lotsqrl.ui import utils
+from lotsqrl.ui.base import UIElement
+from lotsqrl.ui.labels import Label, DynamicLabel
 
 
 class Tree(object):
@@ -63,22 +37,32 @@ class Tree(object):
         self.sub_node_max_width += self.root_max_width + 1
 
     def select_root_node(self, key):
-        if self.selected_root_node:
-            self.selected_root_node.color = None
-        if self.selected_sub_node:
-            self.selected_sub_node.color = None
+        root_node = self.root_nodes.get(key)
+        if not root_node:
+            return
 
-        root_node = self.root_nodes[key]
+        # TODO Could use a UIElement Grouping that tracks what is active instead.
+        if self.selected_root_node:
+            self.selected_root_node.is_active = False
+        if self.selected_sub_node:
+            self.selected_sub_node.is_active = False
+
         self.selected_root_node = root_node
         self.selected_sub_node = self.sub_nodes[root_node]["a"]
-        self.selected_root_node.color = ACTIVE_TEXT_COLOR
-        self.selected_sub_node.color = ACTIVE_TEXT_COLOR
+
+        self.selected_root_node.is_active = True
+        self.selected_sub_node.is_active = True
 
     def select_sub_node(self, key):
+        sub_node = self.sub_nodes[self.selected_root_node].get(key)
+        if not sub_node:
+            return
+
         if self.selected_sub_node:
-            self.selected_sub_node.color = None
-        self.selected_sub_node = self.sub_nodes[self.selected_root_node][key]
-        self.selected_sub_node.color = ACTIVE_TEXT_COLOR
+            self.selected_sub_node.is_active = False
+
+        self.selected_sub_node = sub_node
+        self.selected_sub_node.is_active = True
 
     def _create_sub_nodes(self, root_node, root_max_width):
         row = self.origin_y
@@ -98,42 +82,40 @@ class Tree(object):
             sub_node.draw()
 
 
-class TreeNode(object):
-    def __init__(self, node, x, y, key, color=None):
+class TreeNode(UIElement):
+    def __init__(self, node, rel_x, rel_y, key, theme=None):
+        super().__init__(None, rel_x, rel_y, theme=theme)
         self.node = node
-        self.x = x
-        self.y = y
         self.key = key
-        self.draw_string = f"{self.key}) {self.node.name}"
-        self.color = color
+        self.text = f"{self.key}) {self.node.name}"
 
     def draw(self):
-        if self.color:
-            colorized_string = f"[color={self.color}]{self.draw_string}"
-            terminal.printf(self.x, self.y, colorized_string)
-        else:
-            terminal.printf(self.x, self.y, self.draw_string)
-
+        colorized_string = utils.colorize_text(self, self.text)
+        terminal.printf(self.x, self.y, colorized_string)
 
 def get_sub_node_attribute(tree, attribute):
     return getattr(tree.selected_sub_node.node, attribute)
 
 
 class EvolutionScene(object):
+    FOCUS_ROOT = 0
+    FOCUS_SUB = 1
+
     def __init__(self, actor):
         self.actor = actor
         self.tree = Tree(self.actor.evolution.plan)
         sub_node_max_width = self.tree.sub_node_max_width
         self.ui_elements = [
-            Label("Category", 0, 0),
-            Label("Abilities", self.tree.root_max_width, 0),
-            Label("Name:", sub_node_max_width, 1),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'name'), sub_node_max_width + 5, 1),
-            Label("Cost:", sub_node_max_width, 2),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'cost'), sub_node_max_width + 5, 2),
-            Label("Description:", sub_node_max_width, 3),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'description'), sub_node_max_width + 5, 4)
+            Label(text="Category", rel_x=0, rel_y=0),
+            Label(text="Abilities", rel_x=self.tree.root_max_width, rel_y=0),
+            Label(text="Name:", rel_x=sub_node_max_width, rel_y=1),
+            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
+            Label(text="Cost:", rel_x=sub_node_max_width, rel_y=2),
+            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
+            Label(text="Description:", rel_x=sub_node_max_width, rel_y=3),
+            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
         ]
+        self.selected_column = self.FOCUS_ROOT
 
     def draw(self):
         terminal.clear()
@@ -144,12 +126,26 @@ class EvolutionScene(object):
         terminal.refresh()
 
     def update(self, terminal_input):
-        pass
+        if terminal_input == terminal.TK_TAB:
+            self.swap_column_focus()
+            return
+
+        char_key = chr(terminal.state(terminal.TK_WCHAR))
+        if self.selected_column == self.FOCUS_ROOT:
+            self.tree.select_root_node(char_key)
+        elif self.selected_column == self.FOCUS_SUB:
+            self.tree.select_sub_node(char_key)
+
+    def swap_column_focus(self):
+        if self.selected_column == self.FOCUS_ROOT:
+            self.selected_column = self.FOCUS_SUB
+        elif self.selected_column == self.FOCUS_SUB:
+            self.selected_column = self.FOCUS_ROOT
 
     def start(self):
-        self.draw()
         must_stop = False
         while not must_stop:
+            self.draw()
             terminal_input = terminal.read()
             if terminal_input == terminal.TK_CLOSE:
                 must_stop = True
