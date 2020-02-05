@@ -5,6 +5,7 @@ from bearlibterminal import terminal
 from lotsqrl.ui import utils
 from lotsqrl.ui.base import UIElement
 from lotsqrl.ui.labels import Label, DynamicLabel
+from lotsqrl.ui.themes import Theme
 
 
 class Tree(object):
@@ -81,6 +82,12 @@ class Tree(object):
         for sub_node in self.sub_nodes[self.selected_root_node].values():
             sub_node.draw()
 
+    def get_selected_root_node(self):
+        return self.selected_root_node
+
+    def get_selected_sub_node(self):
+        return self.selected_sub_node
+
 
 class TreeNode(UIElement):
     def __init__(self, node, rel_x, rel_y, key, theme=None):
@@ -93,8 +100,12 @@ class TreeNode(UIElement):
         colorized_string = utils.colorize_text(self, self.text)
         terminal.printf(self.x, self.y, colorized_string)
 
+
 def get_sub_node_attribute(tree, attribute):
-    return getattr(tree.selected_sub_node.node, attribute)
+    def _get_node_attribute():
+        node = tree.get_selected_sub_node()
+        return getattr(node.node, attribute)
+    return _get_node_attribute
 
 
 class EvolutionScene(object):
@@ -105,17 +116,22 @@ class EvolutionScene(object):
         self.actor = actor
         self.tree = Tree(self.actor.evolution.plan)
         sub_node_max_width = self.tree.sub_node_max_width
+        tab_theme = Theme(active_color="black", active_bg_color="yellow")
+        self.category_label = Label(text="Category", rel_x=0, rel_y=0, theme=tab_theme)
+        self.abilities_label = Label(text="Abilities", rel_x=self.tree.root_max_width, rel_y=0, theme=tab_theme)
         self.ui_elements = [
-            Label(text="Category", rel_x=0, rel_y=0),
-            Label(text="Abilities", rel_x=self.tree.root_max_width, rel_y=0),
+            self.category_label,
+            self.abilities_label,
             Label(text="Name:", rel_x=sub_node_max_width, rel_y=1),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
+            DynamicLabel(get_sub_node_attribute(self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
             Label(text="Cost:", rel_x=sub_node_max_width, rel_y=2),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
+            DynamicLabel(get_sub_node_attribute(self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
             Label(text="Description:", rel_x=sub_node_max_width, rel_y=3),
-            DynamicLabel(partial(get_sub_node_attribute, self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
+            DynamicLabel(get_sub_node_attribute(self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
         ]
         self.selected_column = self.FOCUS_ROOT
+        self.category_label.is_active = True
+        self.abilities_label.is_active = False
 
     def draw(self):
         terminal.clear()
@@ -139,8 +155,12 @@ class EvolutionScene(object):
     def swap_column_focus(self):
         if self.selected_column == self.FOCUS_ROOT:
             self.selected_column = self.FOCUS_SUB
+            self.abilities_label.is_active = True
+            self.category_label.is_active = False
         elif self.selected_column == self.FOCUS_SUB:
             self.selected_column = self.FOCUS_ROOT
+            self.category_label.is_active = True
+            self.abilities_label.is_active = False
 
     def start(self):
         must_stop = False
