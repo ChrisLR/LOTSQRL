@@ -22,6 +22,7 @@ class Tree(object):
         self.sub_node_max_width = 0
         self.actor = actor
         self.purchased_theme = Theme(active_color="black", active_bg_color="green", inactive_color="green")
+        self.locked_theme = Theme(active_color="black", active_bg_color="red", inactive_color="red")
 
         row = self.origin_y
         for node in plan.nodes:
@@ -69,7 +70,15 @@ class Tree(object):
         sub_keys = (c for c in self.CHAR_SET)
         for sub_node in root_node.node.children:
             sub_key = next(sub_keys)
-            theme = self.purchased_theme if actor.evolution.has_evolution(sub_node.name) else None
+
+            has_evolution = actor.evolution.has_evolution(sub_node.name)
+            if has_evolution:
+                theme = self.purchased_theme
+            else:
+                can_purchase = actor.evolution.can_purchase(root_node.node.name, sub_node.name)
+                theme = None if can_purchase else self.locked_theme
+
+            theme = theme
             new_tree_node = TreeNode(sub_node, column_space, row, sub_key, theme=theme)
             self.sub_nodes[root_node][sub_key] = new_tree_node
             row += 1
