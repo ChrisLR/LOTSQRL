@@ -22,6 +22,16 @@ class Evolution(object):
     def has_evolution(self, name):
         return self.evolved_map.get(name, False)
 
+    def can_purchase(self, root_name, sub_name):
+        root_node = self.plan.get_root_node(root_name)
+        sub_node = root_node.get_child_node(sub_name)
+        has_all = all(self.evolved_map.get(requirement.name) for requirement in sub_node.requires)
+        excludes_all = all(not self.evolved_map.get(requirement.name) for requirement in sub_node.excludes)
+
+        if has_all and excludes_all:
+            return True
+        return False
+
     def purchase(self, root_name, sub_name):
         if self.evolved_map.get(sub_name):
             return  # We do not allow buying twice
