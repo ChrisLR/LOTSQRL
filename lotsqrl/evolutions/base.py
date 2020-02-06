@@ -1,3 +1,6 @@
+# TODO Iterating in the array to get by name... must be improved...
+
+
 class EvolutionPlan(object):
     def __init__(self, nodes):
         self.nodes = nodes
@@ -20,3 +23,6 @@ class EvolutionNode(object):
 
     def add_exclude(self, node):
         self.excludes.append(node)
+
+    def get_child_node(self, name):
+        return next(child for child in self.children if child.name == name)
