@@ -1,5 +1,3 @@
-from functools import partial
-
 from bearlibterminal import terminal
 
 from lotsqrl.ui import utils
@@ -11,7 +9,7 @@ from lotsqrl.ui.themes import Theme
 class Tree(object):
     CHAR_SET = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-    def __init__(self, plan):
+    def __init__(self, plan, actor):
         self.origin_x = 0
         self.origin_y = 3
         self.sub_nodes = {}
@@ -19,8 +17,11 @@ class Tree(object):
         self.keys = (c for c in self.CHAR_SET)
         self.selected_root_node = None
         self.selected_sub_node = None
+        self.selected_node = None
         self.root_max_width = max(len(node.name) for node in plan.nodes) + 5
         self.sub_node_max_width = 0
+        self.actor = actor
+        self.purchased_theme = Theme(active_color="black", active_bg_color="green", inactive_color="green")
 
         row = self.origin_y
         for node in plan.nodes:
@@ -43,27 +44,24 @@ class Tree(object):
             return
 
         # TODO Could use a UIElement Grouping that tracks what is active instead.
-        if self.selected_root_node:
-            self.selected_root_node.is_active = False
-        if self.selected_sub_node:
-            self.selected_sub_node.is_active = False
+        if self.selected_node:
+            self.selected_node.is_active = False
 
         self.selected_root_node = root_node
-        self.selected_sub_node = self.sub_nodes[root_node]["a"]
-
-        self.selected_root_node.is_active = True
-        self.selected_sub_node.is_active = True
+        self.selected_node = root_node
+        self.selected_node.is_active = True
 
     def select_sub_node(self, key):
         sub_node = self.sub_nodes[self.selected_root_node].get(key)
         if not sub_node:
             return
 
-        if self.selected_sub_node:
-            self.selected_sub_node.is_active = False
+        if self.selected_node:
+            self.selected_node.is_active = False
 
         self.selected_sub_node = sub_node
-        self.selected_sub_node.is_active = True
+        self.selected_node = sub_node
+        self.selected_node.is_active = True
 
     def _create_sub_nodes(self, root_node, root_max_width):
         row = self.origin_y
@@ -71,7 +69,8 @@ class Tree(object):
         sub_keys = (c for c in self.CHAR_SET)
         for sub_node in root_node.node.children:
             sub_key = next(sub_keys)
-            new_tree_node = TreeNode(sub_node, column_space, row, sub_key)
+            theme = self.purchased_theme if actor.evolution.has_evolution(sub_node.name) else None
+            new_tree_node = TreeNode(sub_node, column_space, row, sub_key, theme=theme)
             self.sub_nodes[root_node][sub_key] = new_tree_node
             row += 1
 
@@ -88,6 +87,9 @@ class Tree(object):
     def get_selected_sub_node(self):
         return self.selected_sub_node
 
+    def get_selected_node(self):
+        return self.selected_node
+
 
 class TreeNode(UIElement):
     def __init__(self, node, rel_x, rel_y, key, theme=None):
@@ -101,9 +103,9 @@ class TreeNode(UIElement):
         terminal.printf(self.x, self.y, colorized_string)
 
 
-def get_sub_node_attribute(tree, attribute):
+def get_node_attribute(tree, attribute):
     def _get_node_attribute():
-        node = tree.get_selected_sub_node()
+        node = tree.get_selected_node()
         return getattr(node.node, attribute)
     return _get_node_attribute
 
@@ -114,7 +116,7 @@ class EvolutionScene(object):
 
     def __init__(self, actor):
         self.actor = actor
-        self.tree = Tree(self.actor.evolution.plan)
+        self.tree = Tree(self.actor.evolution.plan, actor)
         sub_node_max_width = self.tree.sub_node_max_width
         tab_theme = Theme(active_color="black", active_bg_color="yellow")
         self.category_label = Label(text="Category", rel_x=0, rel_y=0, theme=tab_theme)
@@ -123,11 +125,11 @@ class EvolutionScene(object):
             self.category_label,
             self.abilities_label,
             Label(text="Name:", rel_x=sub_node_max_width, rel_y=1),
-            DynamicLabel(get_sub_node_attribute(self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
+            DynamicLabel(get_node_attribute(self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
             Label(text="Cost:", rel_x=sub_node_max_width, rel_y=2),
-            DynamicLabel(get_sub_node_attribute(self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
+            DynamicLabel(get_node_attribute(self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
             Label(text="Description:", rel_x=sub_node_max_width, rel_y=3),
-            DynamicLabel(get_sub_node_attribute(self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
+            DynamicLabel(get_node_attribute(self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
         ]
         self.selected_column = self.FOCUS_ROOT
         self.category_label.is_active = True
