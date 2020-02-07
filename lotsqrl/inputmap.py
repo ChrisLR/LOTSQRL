@@ -12,7 +12,8 @@ class SystemMapping(InputMapping):
     _mapping = {
         terminal.TK_CLOSE: "exit_game",
         terminal.TK_F1: "open_manual",
-        terminal.TK_ESCAPE: "new_game"
+        terminal.TK_ESCAPE: "new_game",
+        terminal.TK_F2: "open_evolution"
     }
 
 

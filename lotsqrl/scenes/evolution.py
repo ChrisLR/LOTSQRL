@@ -3,7 +3,7 @@ from bearlibterminal import terminal
 from lotsqrl.ui import utils
 from lotsqrl.ui.base import UIElement
 from lotsqrl.ui.labels import Label, DynamicLabel
-from lotsqrl.ui.themes import Theme
+from lotsqrl.ui.themes import Theme, default_theme
 
 
 class Tree(object):
@@ -71,11 +71,11 @@ class Tree(object):
         for sub_node in root_node.node.children:
             sub_key = next(sub_keys)
 
-            has_evolution = actor.evolution.has_evolution(sub_node.name)
+            has_evolution = self.actor.evolution.has_evolution(sub_node.name)
             if has_evolution:
                 theme = self.purchased_theme
             else:
-                can_purchase = actor.evolution.can_purchase(root_node.node.name, sub_node.name)
+                can_purchase = self.actor.evolution.can_purchase(root_node.node.name, sub_node.name)
                 theme = None if can_purchase else self.locked_theme
 
             theme = theme
@@ -98,6 +98,38 @@ class Tree(object):
 
     def get_selected_node(self):
         return self.selected_node
+
+    def purchase(self):
+        root_node = self.selected_root_node.node if self.selected_root_node else None
+        sub_node = self.selected_sub_node.node if self.selected_sub_node else None
+        root_name = root_node.name if root_node else None
+        sub_name = sub_node.name if sub_node else None
+        self.actor.evolution.purchase(root_name, sub_name)
+        self.update_node_themes()
+
+    def update_node_themes(self):
+        actor = self.actor
+        for root_node, sub_nodes in self.sub_nodes.items():
+            for sub_node in sub_nodes.values():
+                has_evolution = actor.evolution.has_evolution(sub_node.node.name)
+                if has_evolution:
+                    theme = self.purchased_theme
+                else:
+                    can_purchase = actor.evolution.can_purchase(root_node.node.name, sub_node.node.name)
+                    theme = default_theme if can_purchase else self.locked_theme
+
+                theme = theme
+                sub_node.theme = theme
+
+            has_evolution = actor.evolution.has_evolution(root_node.node.name)
+            if has_evolution:
+                theme = self.purchased_theme
+            else:
+                can_purchase = actor.evolution.can_purchase(root_node.node.name)
+                theme = default_theme if can_purchase else self.locked_theme
+
+            theme = theme
+            root_node.theme = theme
 
 
 class TreeNode(UIElement):
@@ -143,6 +175,7 @@ class EvolutionScene(object):
         self.selected_column = self.FOCUS_ROOT
         self.category_label.is_active = True
         self.abilities_label.is_active = False
+        self.must_stop = True
 
     def draw(self):
         terminal.clear()
@@ -156,6 +189,13 @@ class EvolutionScene(object):
         if terminal_input == terminal.TK_TAB:
             self.swap_column_focus()
             return
+
+        if terminal_input == terminal.TK_ENTER:
+            self.tree.purchase()
+
+        if terminal_input == terminal.TK_ESCAPE:
+            self.actor.game.evolution_scene_active = False
+            self.must_stop = True
 
         char_key = chr(terminal.state(terminal.TK_WCHAR))
         if self.selected_column == self.FOCUS_ROOT:
@@ -174,21 +214,13 @@ class EvolutionScene(object):
             self.abilities_label.is_active = False
 
     def start(self):
-        must_stop = False
-        while not must_stop:
+        self.must_stop = False
+
+        while not self.must_stop:
+            terminal.layer(0)
             self.draw()
             terminal_input = terminal.read()
             if terminal_input == terminal.TK_CLOSE:
-                must_stop = True
+                self.must_stop = True
             else:
                 self.update(terminal_input)
-
-
-if __name__ == '__main__':
-    from lotsqrl.actors import spiders
-    running = terminal.open()
-    terminal.set("window: size=100x50, title=Meh")
-    actor = spiders.SpiderQueen(None, 0, 0)
-    scene = EvolutionScene(actor)
-    scene.start()
-    terminal.close()

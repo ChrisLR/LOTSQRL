@@ -6,6 +6,7 @@ from bearlibterminal import terminal
 from lotsqrl import actors, automata, controllers, tiles
 from lotsqrl.camera import Camera
 from lotsqrl.scenes.game import GameScene
+from lotsqrl.scenes.evolution import EvolutionScene
 from lotsqrl.teams import Team
 from lotsqrl.messages import Messaging
 
@@ -25,6 +26,9 @@ class Game(object):
         self.scene = GameScene(self, screen_info)
         self.turn = 0
         self.messaging = Messaging(self, self.options.msg_scope)
+        # TODO A Scene manager would be very helpful instead
+        self.evolution_scene = None
+        self.evolution_scene_active = False
 
     def prepare(self):
         automata_steps = 4  # Usually gives a nice layout
@@ -34,6 +38,7 @@ class Game(object):
         self.player.y = spawn_y
         self.player.stunned = 1  # This skips turn 0
         self.level.add_actor(self.player)
+        self.evolution_scene = EvolutionScene(self.player)
 
     def run(self):
         self.running = True
@@ -73,6 +78,9 @@ class Game(object):
 
             if boss.dead and not level.get_actors_by_team(Team.Goblin):
                 self.game_won = True
+
+            if self.evolution_scene_active:
+                self.evolution_scene.start()
 
             terminal.clear()
             self.scene.draw_top_gui()
