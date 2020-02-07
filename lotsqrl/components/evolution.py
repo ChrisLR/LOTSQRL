@@ -22,34 +22,42 @@ class Evolution(object):
     def has_evolution(self, name):
         return self.evolved_map.get(name, False)
 
-    def can_purchase(self, root_name, sub_name):
+    def can_purchase(self, root_name, sub_name=None):
         root_node = self.plan.get_root_node(root_name)
-        sub_node = root_node.get_child_node(sub_name)
-        has_root = self.evolved_map.get(root_name)
-        if not has_root:
-            return False
+        wanted_node = root_node
+        if sub_name is not None:
+            sub_node = root_node.get_child_node(sub_name)
+            wanted_node = sub_node
+            has_root = self.evolved_map.get(root_name)
+            if not has_root:
+                return False
 
-        has_all = all(self.evolved_map.get(requirement.name) for requirement in sub_node.requires)
+        has_all = all(self.evolved_map.get(requirement.name) for requirement in wanted_node.requires)
         if not has_all:
             return False
 
-        excludes_all = all(not self.evolved_map.get(requirement.name) for requirement in sub_node.excludes)
+        excludes_all = all(not self.evolved_map.get(requirement.name) for requirement in wanted_node.excludes)
         if not excludes_all:
             return False
 
         return True
 
-    def purchase(self, root_name, sub_name):
-        if self.evolved_map.get(sub_name):
+    def purchase(self, root_name, sub_name=None):
+        wanted_name = sub_name or root_name
+        if self.evolved_map.get(wanted_name):
             return  # We do not allow buying twice
 
         if not self.can_purchase(root_name, sub_name):
             return False
 
         root_node = self.plan.get_root_node(root_name)
-        sub_node = root_node.get_child_node(sub_name)
-        if self.points >= sub_node.cost:
-            self.remove(sub_node.cost)
-            self.evolved_map[sub_node.name] = True
+        wanted_node = root_node
+        if sub_name is not None:
+            sub_node = root_node.get_child_node(sub_name)
+            wanted_node = sub_node
+
+        if self.points >= wanted_node.cost:
+            self.remove(wanted_node.cost)
+            self.evolved_map[wanted_node.name] = True
             return True
         return False
