@@ -52,6 +52,8 @@ class GameScene(object):
         terminal.printf(30, 3, "Crushed:%s" % player.score.enemies_crushed)
         terminal.printf(30, 4, "Webs Fired:%s" % player.score.webs_fired)
 
+        terminal.printf(50, 1, "Evolution:%s" % player.evolution.points)
+
         if player.dead:
             terminal.printf(45, 3, "[color=red]You are dead![/color]")
             terminal.printf(45, 4, "Press ESCAPE to go back to main menu")

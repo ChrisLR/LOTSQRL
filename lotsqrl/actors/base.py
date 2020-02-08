@@ -7,6 +7,7 @@ class Actor(GameObject):
     actor_type = None
     base_actions = tuple()
     default_controller = controllers.AIController
+    evolution_worth = 1
 
     def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
         super().__init__(game, display_char, name, x, y, team=team)
@@ -21,6 +22,7 @@ class Actor(GameObject):
         self.path_find = None
         self.path_find_runs = None
         self.controller = self.default_controller(self)
+        self.evolution = None
 
     def act(self):
         controller = self.controller
@@ -43,7 +45,7 @@ class Actor(GameObject):
             scope=MessageScope.TargetsPlayer,
             actor=self
         )
-        corpse = Corpse(self.game, self.name, self.x, self.y)
+        corpse = Corpse(self.game, self.name, self.x, self.y, evolution_worth=self.evolution_worth)
         self.game.level.remove_actor(self)
         self.game.level.add_actor(corpse)
 

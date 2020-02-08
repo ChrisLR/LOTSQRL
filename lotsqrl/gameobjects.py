@@ -27,11 +27,13 @@ class GameObject(object):
 class Corpse(GameObject):
     actor_type = ActorTypes.Corpse
 
-    def __init__(self, game, name, x=0, y=0):
+    def __init__(self, game, name, x=0, y=0, evolution_worth=1):
         super().__init__(game, "%", "the corpse of %s" % name, x, y)
         self.blocking = False
         self.team = Team.Corpse
         self.dead = True
+        self.evolution_worth = evolution_worth
+        self.evolution = None
 
     def act(self):
         pass

@@ -7,6 +7,14 @@ L - Lay Egg
 Numpad 5 - Wait
 Numpad Move/Bump
 
+F1 - Open Manual
+F2 - Open Evolution Screen
+
+Evolution
+    Every time you eat you consume your victim, fueling your ability to evolve.
+    You can then choose between three evolution branch and multiple abilities.
+    Select the ability using tab and the proper key then press enter to buy.
+
 
 Actions
 
@@ -28,7 +36,7 @@ Eat Corpse
 	Careful not to waste corpses, your minions can also eat them to recover.
 
 Lay Egg
-	Allows you to lay an egg, it hatches in 10 turns, spawning a spiderling.
+	Allows you to lay an egg, it hatches in 10 turns, spawning a  spiderling.
 	This weak critter may not seem like much but in numbers it can turn the tide.
 	If they see a cocoon they will try to burrow in it, laying dormant for 10 more turns
 	but emerging as a stronger spider.
