@@ -111,8 +111,9 @@ class SpiderQueen(Arachnid):
     web_delay = 20
 
     def __init__(self, game, x, y):
-        # TODO The image of the Spider Queen is bound to @
-        # TODO This will cause issue if we ever start to have more than one
+        # TODO The string for ascii mode must not be the same as the one for the graphics.
+        # TODO The @ must be assigned to the player, no matter what it is controlling
+        # TODO We will need two seperate tilesets
         super().__init__(game, 20, "@", "Spider Queen", x, y, team=Team.SpiderQueen)
         self.evolution = components.Evolution(self, evolutions.create_spider_queen_evolution())
         self.is_player = True
