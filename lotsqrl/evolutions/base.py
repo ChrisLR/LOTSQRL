@@ -1,7 +1,7 @@
 class EvolutionPlan(object):
     def __init__(self, nodes):
         self.nodes = nodes
-        self._nodes = {node.name: node for node in nodes} if nodes else {}
+        self._nodes = {node.evolution.name: node for node in nodes} if nodes else {}
 
     def get_root_node(self, name):
         return self._nodes[name]
@@ -11,13 +11,13 @@ class EvolutionNode(object):
     def __init__(self, evolution, children=None, excludes=None, requires=None):
         self.evolution = evolution
         self.children = children or []
-        self._children = {child.name: child for child in children} if children else {}
+        self._children = {child.evolution.name: child for child in children} if children else {}
         self.excludes = excludes or []
         self.requires = requires or []
 
     def add_child(self, node):
         self.children.append(node)
-        self._children[node.name] = node
+        self._children[node.evolution.name] = node
 
     def add_exclude(self, node):
         self.excludes.append(node)

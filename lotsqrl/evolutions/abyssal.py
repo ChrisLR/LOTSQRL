@@ -11,6 +11,7 @@ class Giant(Evolution):
     def on_apply(self):
         host = self.host
         self.host.max_hp *= 2
+        self.host.hp *= 2
         host.game.messaging.add_scoped_message(
             message_actor=f"You rapidly grow into a monstrous size!",
             message_others=f"{host.name} rapidly grows into a monstrous size!",

@@ -18,7 +18,7 @@ class Tree(object):
         self.selected_root_node = None
         self.selected_sub_node = None
         self.selected_node = None
-        self.root_max_width = max(len(node.name) for node in plan.nodes) + 5
+        self.root_max_width = max(len(node.evolution.name) for node in plan.nodes) + 5
         self.sub_node_max_width = 0
         self.actor = actor
         self.purchased_theme = Theme(active_color="black", active_bg_color="green", inactive_color="green")
@@ -34,7 +34,7 @@ class Tree(object):
 
         self.select_root_node("a")
         for root, sub_nodes in self.sub_nodes.items():
-            max_sub_width = max(len(node.node.name) for node in sub_nodes.values())
+            max_sub_width = max(len(node.node.evolution.name) for node in sub_nodes.values())
             if max_sub_width > self.sub_node_max_width:
                 self.sub_node_max_width = max_sub_width
         self.sub_node_max_width += self.root_max_width + 1
@@ -71,11 +71,11 @@ class Tree(object):
         for sub_node in root_node.node.children:
             sub_key = next(sub_keys)
 
-            has_evolution = self.actor.evolution.has_evolution(sub_node.name)
+            has_evolution = self.actor.evolution.has_evolution(sub_node.evolution.name)
             if has_evolution:
                 theme = self.purchased_theme
             else:
-                can_purchase = self.actor.evolution.can_purchase(root_node.node.name, sub_node.name)
+                can_purchase = self.actor.evolution.can_purchase(root_node.node.evolution.name, sub_node.evolution.name)
                 theme = None if can_purchase else self.locked_theme
 
             theme = theme
@@ -102,8 +102,8 @@ class Tree(object):
     def purchase(self):
         root_node = self.selected_root_node.node if self.selected_root_node else None
         sub_node = self.selected_sub_node.node if self.selected_sub_node else None
-        root_name = root_node.name if root_node else None
-        sub_name = sub_node.name if sub_node else None
+        root_name = root_node.evolution.name if root_node else None
+        sub_name = sub_node.evolution.name if sub_node else None
         self.actor.evolution.purchase(root_name, sub_name)
         self.update_node_themes()
 
@@ -111,21 +111,21 @@ class Tree(object):
         actor = self.actor
         for root_node, sub_nodes in self.sub_nodes.items():
             for sub_node in sub_nodes.values():
-                has_evolution = actor.evolution.has_evolution(sub_node.node.name)
+                has_evolution = actor.evolution.has_evolution(sub_node.node.evolution.name)
                 if has_evolution:
                     theme = self.purchased_theme
                 else:
-                    can_purchase = actor.evolution.can_purchase(root_node.node.name, sub_node.node.name)
+                    can_purchase = actor.evolution.can_purchase(root_node.node.evolution.name, sub_node.node.evolution.name)
                     theme = default_theme if can_purchase else self.locked_theme
 
                 theme = theme
                 sub_node.theme = theme
 
-            has_evolution = actor.evolution.has_evolution(root_node.node.name)
+            has_evolution = actor.evolution.has_evolution(root_node.node.evolution.name)
             if has_evolution:
                 theme = self.purchased_theme
             else:
-                can_purchase = actor.evolution.can_purchase(root_node.node.name)
+                can_purchase = actor.evolution.can_purchase(root_node.node.evolution.name)
                 theme = default_theme if can_purchase else self.locked_theme
 
             theme = theme
@@ -137,18 +137,18 @@ class TreeNode(UIElement):
         super().__init__(None, rel_x, rel_y, theme=theme)
         self.node = node
         self.key = key
-        self.text = f"{self.key}) {self.node.name}"
+        self.text = f"{self.key}) {self.node.evolution.name}"
 
     def draw(self):
         colorized_string = utils.colorize_text(self, self.text)
         terminal.printf(self.x, self.y, colorized_string)
 
 
-def get_node_attribute(tree, attribute):
-    def _get_node_attribute():
+def get_evolution_attribute(tree, attribute):
+    def _get_evolution_attribute():
         node = tree.get_selected_node()
-        return getattr(node.node, attribute)
-    return _get_node_attribute
+        return getattr(node.node.evolution, attribute)
+    return _get_evolution_attribute
 
 
 class EvolutionScene(object):
@@ -166,11 +166,11 @@ class EvolutionScene(object):
             self.category_label,
             self.abilities_label,
             Label(text="Name:", rel_x=sub_node_max_width, rel_y=1),
-            DynamicLabel(get_node_attribute(self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
+            DynamicLabel(get_evolution_attribute(self.tree, 'name'), rel_x=sub_node_max_width + 5, rel_y=1),
             Label(text="Cost:", rel_x=sub_node_max_width, rel_y=2),
-            DynamicLabel(get_node_attribute(self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
+            DynamicLabel(get_evolution_attribute(self.tree, 'cost'), rel_x=sub_node_max_width + 5, rel_y=2),
             Label(text="Description:", rel_x=sub_node_max_width, rel_y=3),
-            DynamicLabel(get_node_attribute(self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
+            DynamicLabel(get_evolution_attribute(self.tree, 'description'), rel_x=sub_node_max_width + 5, rel_y=4)
         ]
         self.selected_column = self.FOCUS_ROOT
         self.category_label.is_active = True

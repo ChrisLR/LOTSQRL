@@ -12,7 +12,7 @@ def create_spider_queen_evolution():
     #abyssal.add_exclude(rotting)
     #brood.add_exclude(abyssal)
     #brood.add_exclude(rotting)
-    r#otting.add_exclude(abyssal)
+    #rotting.add_exclude(abyssal)
     #rotting.add_exclude(brood)
 
     plan = EvolutionPlan([abyssal])

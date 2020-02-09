@@ -35,11 +35,13 @@ class Evolution(Component):
             if not has_root:
                 return False
 
-        has_all = all(self.evolved_map.get(requirement.name) for requirement in wanted_node.requires)
+        has_all = all(self.evolved_map.get(requirement.evolution.name)
+                      for requirement in wanted_node.requires)
         if not has_all:
             return False
 
-        excludes_all = all(not self.evolved_map.get(requirement.name) for requirement in wanted_node.excludes)
+        excludes_all = all(not self.evolved_map.get(requirement.evolution.name)
+                           for requirement in wanted_node.excludes)
         if not excludes_all:
             return False
 
@@ -59,8 +61,9 @@ class Evolution(Component):
             sub_node = root_node.get_child_node(sub_name)
             wanted_node = sub_node
 
-        if self.points >= wanted_node.cost:
-            self.remove(wanted_node.cost)
-            self.evolved_map[wanted_node.name] = True
+        evolution = wanted_node.evolution
+        if self.points >= evolution.cost:
+            self.remove(evolution.cost)
+            self.evolved_map[evolution.name] = evolution(self.host)
             return True
         return False
