@@ -1,6 +1,9 @@
-class Evolution(object):
+from lotsqrl.components.base import Component
+
+
+class Evolution(Component):
     def __init__(self, host, plan, points=0):
-        self.host = host
+        super().__init__(host)
         self.plan = plan
         self.evolved_map = {}
         self.points = points

@@ -1,9 +1,11 @@
 from bearlibterminal import terminal
 
+from lotsqrl.components.base import Component
 
-class Action(object):
+
+class Action(Component):
     def __init__(self, host, base_actions):
-        self.host = host
+        super().__init__(host)
         self.actions = {action.name: action for action in base_actions}
 
     def can_execute(self, name, target=None):

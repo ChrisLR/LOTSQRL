@@ -1,6 +1,9 @@
-class Cooldowns(object):
+from lotsqrl.components.base import Component
+
+
+class Cooldowns(Component):
     def __init__(self, host):
-        self.host = host
+        super().__init__(host)
         self._cooldowns = {}
 
     def get(self, name):
