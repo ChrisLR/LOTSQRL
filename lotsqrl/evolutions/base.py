@@ -8,10 +8,8 @@ class EvolutionPlan(object):
 
 
 class EvolutionNode(object):
-    def __init__(self, name, description, cost, children=None, excludes=None, requires=None):
-        self.name = name
-        self.description = description
-        self.cost = cost
+    def __init__(self, evolution, children=None, excludes=None, requires=None):
+        self.evolution = evolution
         self.children = children or []
         self._children = {child.name: child for child in children} if children else {}
         self.excludes = excludes or []
@@ -26,3 +24,19 @@ class EvolutionNode(object):
 
     def get_child_node(self, name):
         return self._children[name]
+
+
+class Evolution(object):
+    name = ""
+    description = ""
+    cost = 0
+
+    def __init__(self, host):
+        self.host = host
+        self.on_apply()
+
+    def on_apply(self):
+        pass
+
+    def on_remove(self):
+        pass
