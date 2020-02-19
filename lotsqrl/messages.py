@@ -42,7 +42,7 @@ class Messaging(object):
                            scope=MessageScope.TargetsPlayer, actor=None, target=None, targets=None):
         if self.silent:
             return
-        
+
         if targets is None:
             targets = self._no_targets
 

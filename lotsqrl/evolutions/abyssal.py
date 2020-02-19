@@ -1,4 +1,5 @@
 from lotsqrl.evolutions.base import EvolutionNode, Evolution
+from lotsqrl.actions.spiders import DevouringMaw as DevouringMawAction
 
 
 class Giant(Evolution):
@@ -33,9 +34,32 @@ class Giant(Evolution):
 
 
 class DevouringMaw(Evolution):
-    name = "Devouring Maw",
+    name = "Devouring Maw"
     cost = 10
     description = "Killing an enemy consumes it instantly"
+
+    def __init__(self, host):
+        super().__init__(host)
+        self._old_action = None
+
+    def on_apply(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"Your jaws enlarge to a disproportionate size!",
+            message_others=f"{host.name}'s jaws enlarge to a disproportionate size!",
+            actor=host
+        )
+        self._old_action = host.actions.get("bite")
+        host.actions.actions["bite"] = DevouringMawAction(self._old_action.damage, self._old_action.reach)
+
+    def on_remove(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"Your jaws shrink to a relatively normal size.",
+            message_others=f"{host.name}'s jaws shrink to a relatively normal size.",
+            actor=host
+        )
+        host.actions.actions["bite"] = self._old_action
 
 
 class SwallowWhole(Evolution):

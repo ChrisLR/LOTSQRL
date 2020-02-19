@@ -201,7 +201,7 @@ class EvolutionScene(object):
 
         if terminal_input == terminal.TK_F1:
             # DEBUG!
-            self.actor.evolution = 99
+            self.actor.evolution.points = 99
             return
 
         char_key = chr(terminal.state(terminal.TK_WCHAR))

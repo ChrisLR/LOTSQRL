@@ -102,6 +102,32 @@ class ConsumeMinion(TouchAction):
         return True
 
 
+class DevouringMaw(Bite):
+    base_damage = (1, 4)
+    name = "bite"
+
+    def on_hit(self, actor, target):
+        with utils.silence(actor.game):
+            super().on_hit(actor, target)
+
+        if target.hp <= 0:
+            with utils.silence(actor.game):
+                actor.actions.execute("eat_corpse", target=target.corpse)
+            actor.game.messaging.add_scoped_message(
+                message_actor=f"You devour {target.name} with one massive snap of your jaws!",
+                message_target=f"{actor.name} devours you with one massive snap of its jaws!",
+                message_others=f"{actor.name} devours {target.name} with one massive snap of its jaws!",
+                actor=actor, target=target, scope=MessageScope.TargetsPlayer
+            )
+        else:
+            actor.game.messaging.add_scoped_message(
+                message_actor=f"You bite {target.name} with your oversized jaws!",
+                message_target=f"{actor.name} bites you with its oversized jaws!",
+                message_others=f"{actor.name} bites {target.name} with its oversized jaws!",
+                actor=actor, target=target, scope=MessageScope.TargetsPlayer
+            )
+
+
 class EatCorpse(TouchAction):
     name = "eat_corpse"
     base_heal = 5
