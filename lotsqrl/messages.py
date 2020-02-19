@@ -16,24 +16,33 @@ class MessageScopePreference(IntEnum):
 class Messaging(object):
     _no_targets = tuple()
 
-    def __init__(self, game, msg_scope_pref):
+    def __init__(self, game, msg_scope_pref, silent=False):
         self.game = game
         self.messages = []
         self.msg_scope_pref = msg_scope_pref
+        self.silent = silent
 
     def add_system_message(self, message, show_now=False):
+        if self.silent:
+            return
+
         self.messages.append(message)
         if show_now:
             self.game.scene.update_messages()
             terminal.refresh()
 
     def add_player_message(self, message, actor):
+        if self.silent:
+            return
+
         if actor is self.game.player:
             self.messages.append(message)
 
     def add_scoped_message(self, message_actor=None, message_target=None, message_others=None, show_now=False,
                            scope=MessageScope.TargetsPlayer, actor=None, target=None, targets=None):
-
+        if self.silent:
+            return
+        
         if targets is None:
             targets = self._no_targets
 

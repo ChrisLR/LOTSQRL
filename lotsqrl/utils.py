@@ -1,3 +1,5 @@
+import contextlib
+
 from bearlibterminal import terminal
 
 from lotsqrl import tiles
@@ -112,6 +114,13 @@ def get_target_line(actor, target):
             coords.append((line_x, line_y))
 
     return TargetLine(actor, target, coords)
+
+
+@contextlib.contextmanager
+def silence(game):
+    game.messaging.silent = True
+    yield
+    game.messaging.silent = False
 
 
 direction_offsets = {
