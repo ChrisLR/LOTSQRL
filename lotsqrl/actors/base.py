@@ -23,6 +23,7 @@ class Actor(GameObject):
         self.path_find_runs = None
         self.controller = self.default_controller(self)
         self.evolution = None
+        self.corpse = None
 
     def act(self):
         controller = self.controller
@@ -45,9 +46,9 @@ class Actor(GameObject):
             scope=MessageScope.TargetsPlayer,
             actor=self
         )
-        corpse = Corpse(self.game, self.name, self.x, self.y, evolution_worth=self.evolution_worth)
+        self.corpse = Corpse(self.game, self.name, self.x, self.y, evolution_worth=self.evolution_worth)
         self.game.level.remove_actor(self)
-        self.game.level.add_actor(corpse)
+        self.game.level.add_actor(self.corpse)
 
     def update(self):
         super().update()
