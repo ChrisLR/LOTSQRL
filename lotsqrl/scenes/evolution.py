@@ -192,10 +192,17 @@ class EvolutionScene(object):
 
         if terminal_input == terminal.TK_ENTER:
             self.tree.purchase()
+            return
 
         if terminal_input == terminal.TK_ESCAPE:
             self.actor.game.evolution_scene_active = False
             self.must_stop = True
+            return
+
+        if terminal_input == terminal.TK_F1:
+            # DEBUG!
+            self.actor.evolution = 99
+            return
 
         char_key = chr(terminal.state(terminal.TK_WCHAR))
         if self.selected_column == self.FOCUS_ROOT:
