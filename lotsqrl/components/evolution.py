@@ -25,6 +25,9 @@ class Evolution(Component):
     def has_evolution(self, name):
         return self.evolved_map.get(name, False)
 
+    def get(self, name):
+        return self.evolved_map.get(name)
+
     def can_purchase(self, root_name, sub_name=None):
         root_node = self.plan.get_root_node(root_name)
         wanted_node = root_node

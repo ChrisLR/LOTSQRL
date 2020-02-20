@@ -67,6 +67,23 @@ class SwallowWhole(Evolution):
     cost = 20
     description = "Swallow a live enemy, regenerating as you digest it"
 
+    def on_apply(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"You are now able to digest live squirming victims.",
+            actor=host
+        )
+        self._old_action = host.actions.get("bite")
+        host.actions.actions["bite"] = DevouringMawAction(self._old_action.damage, self._old_action.reach)
+
+    def on_remove(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"You are no longer able to digest live squirming victims.",
+            actor=host
+        )
+        del host.actions.actions["swallow_whole"]
+
 
 class ThickChitin(Evolution):
     name = "Thick Chitin"

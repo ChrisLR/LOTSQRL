@@ -60,7 +60,7 @@ class ConsumeMinion(TouchAction):
     selectors = (
         selectors.TouchDirectional(
             "Press direction to consume minion",
-            filters=(selectors.filters.OnlyEnemies(),)
+            filters=(selectors.filters.OnlyAllies(),)
         ),
     )
 
@@ -339,3 +339,38 @@ class SpinCocoon(Action):
                 actor.score.webs_fired += 1
 
         return True
+
+
+class SwallowWhole(TouchAction):
+    name = "swallow_whole"
+    selectors = (
+        selectors.TouchDirectional(
+            "Press direction to swallow your victim",
+            filters=(selectors.filters.OnlyEnemies(),)
+        ),
+    )
+
+    def can_execute(self, actor, target):
+        base_result = super().can_execute(actor, target)
+        if not base_result:
+            actor.game.messaging.add_scoped_message(
+                message_actor="There is no enemy there.",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
+            return base_result
+
+        evolution = actor.evolution.get("Swallow Whole")
+        if not evolution:
+            actor.game.messaging.add_scoped_message(
+                message_actor="You cannot do that",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
+            return False
+
+        # TODO Must make sure actor is not already digesting someone
+
+        return True
+
+    def execute(self, actor, target):
+        # TODO Implement the action
+        pass
