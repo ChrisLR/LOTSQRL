@@ -5,10 +5,10 @@ from bearlibterminal import terminal
 
 from lotsqrl import actors, automata, controllers, tiles
 from lotsqrl.camera import Camera
-from lotsqrl.scenes.game import GameScene
-from lotsqrl.scenes.evolution import EvolutionScene
-from lotsqrl.teams import Team
 from lotsqrl.messages import Messaging
+from lotsqrl.scenes.evolution import EvolutionScene
+from lotsqrl.scenes.game import GameScene
+from lotsqrl.teams import Team
 
 
 class Game(object):
@@ -29,6 +29,8 @@ class Game(object):
         # TODO A Scene manager would be very helpful instead
         self.evolution_scene = None
         self.evolution_scene_active = False
+        self.powers_scene = None
+        self.powers_selection_active = False
 
     def prepare(self):
         automata_steps = 4  # Usually gives a nice layout
@@ -81,6 +83,9 @@ class Game(object):
 
             if self.evolution_scene_active:
                 self.evolution_scene.start()
+
+            if self.powers_selection_active:
+                self.powers_scene.start()
 
             terminal.clear()
             self.scene.draw_top_gui()

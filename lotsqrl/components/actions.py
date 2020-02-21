@@ -7,6 +7,7 @@ class Action(Component):
     def __init__(self, host, base_actions):
         super().__init__(host)
         self.actions = {action.name: action for action in base_actions}
+        self.powers = {action.name for action in base_actions if action.is_power}
 
     def can_execute(self, name, target=None):
         """Confirms if an action CAN execute
@@ -34,6 +35,9 @@ class Action(Component):
 
     def get(self, name):
         return self.actions.get(name)
+
+    def get_powers(self):
+        return self.powers
 
     def try_execute(self, name, target=None):
         """Tries to execute and executes in one step.

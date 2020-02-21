@@ -2,6 +2,8 @@ from lotsqrl.effects.base import Effect
 
 
 class Digesting(Effect):
+    name = "Digesting"
+
     def __init__(self, host, lifetime, target, regen_per_turn, damage_per_turn):
         super().__init__(host, lifetime)
         self.regen_per_turn = regen_per_turn
@@ -12,6 +14,8 @@ class Digesting(Effect):
         super().update()
         self.host.hp += self.regen_per_turn
         self.target.hp -= self.damage_per_turn
+        if self.target.hp <= 0:
+            self.lifetime = 0
 
     def on_start(self):
         host = self.host
@@ -41,4 +45,6 @@ class Digesting(Effect):
             message_others=f"{self.target} escapes from {self.host}",
             actor=host, target=self.target
         )
+        self.target.x = host.x
+        self.target.y = host.y
         self.host.game.level.add_actor(self.target)

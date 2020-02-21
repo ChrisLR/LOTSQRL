@@ -4,7 +4,7 @@ from bearlibterminal import terminal
 
 from lotsqrl import inputmap, movement
 from lotsqrl.scenes.helpfile import draw_help_file
-from lotsqrl.scenes.evolution import EvolutionScene
+from lotsqrl.scenes.powers import PowersScene
 
 
 class ActorController(object):
@@ -65,6 +65,9 @@ class PlayerController(ActorController):
                 draw_help_file()
             elif system_input == "open_evolution":
                 self.host.game.evolution_scene_active = True
+            elif system_input == "open_powers":
+                self.host.game.powers_scene = PowersScene(self.host)
+                self.host.game.powers_selection_active = True
             elif system_input == "new_game":
                 if host.game.game_won:
                     host.game.should_restart = True

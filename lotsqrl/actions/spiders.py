@@ -1,9 +1,9 @@
 import random
 
-from lotsqrl import movement, tiles, selectors, utils
+from lotsqrl import effects, movement, tiles, selectors, utils
 from lotsqrl.actions.base import MeleeAttack, TouchAction, Action
-from lotsqrl.teams import ActorTypes, Team
 from lotsqrl.messages import MessageScope
+from lotsqrl.teams import ActorTypes, Team
 
 
 class Bite(MeleeAttack):
@@ -349,6 +349,7 @@ class SwallowWhole(TouchAction):
             filters=(selectors.filters.OnlyEnemies(),)
         ),
     )
+    is_power = True
 
     def can_execute(self, actor, target):
         base_result = super().can_execute(actor, target)
@@ -367,10 +368,22 @@ class SwallowWhole(TouchAction):
             )
             return False
 
-        # TODO Must make sure actor is not already digesting someone
+        if actor.effects.get_by_name("Digesting"):
+            actor.game.messaging.add_scoped_message(
+                message_actor="You are already digesting something.",
+                actor=actor, scope=MessageScope.TargetsPlayer
+            )
+            return False
 
         return True
 
     def execute(self, actor, target):
-        # TODO Implement the action
-        pass
+        game = actor.game
+        game.messaging.add_scoped_message(
+            message_actor=f"You swallow {target}!",
+            message_target=f"{actor} swallows you!!",
+            message_others=f"{actor} swallows from {target}",
+            actor=actor, target=target
+        )
+        game.level.remove_actor(target)
+        actor.effects.set(effects.Digesting(actor, -1, target, 2, 2))

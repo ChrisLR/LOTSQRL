@@ -13,7 +13,8 @@ class SystemMapping(InputMapping):
         terminal.TK_CLOSE: "exit_game",
         terminal.TK_F1: "open_manual",
         terminal.TK_ESCAPE: "new_game",
-        terminal.TK_F2: "open_evolution"
+        terminal.TK_F2: "open_evolution",
+        terminal.TK_U: "open_powers"
     }
 
 

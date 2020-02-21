@@ -8,6 +8,7 @@ class Action(object):
     name = ""
     selectors = None
     targets = 1
+    is_power = False
 
     def __init__(self, cooldown=None):
         self.cooldown = cooldown or self.base_cooldown
