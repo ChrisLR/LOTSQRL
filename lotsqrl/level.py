@@ -28,12 +28,19 @@ class Level(object):
             team_actors.append(actor)
 
     def remove_actor(self, actor):
-        self.actors.remove(actor)
-        actor.level = None
-        team = actor.team
-        if team is not None:
-            team_actors = self.actors_by_team[team]
-            team_actors.remove(actor)
+        try:
+            self.actors.remove(actor)
+        except ValueError:
+            pass
+
+            actor.level = None
+            team = actor.team
+            if team is not None:
+                try:
+                    team_actors = self.actors_by_team[team]
+                    team_actors.remove(actor)
+                except ValueError:
+                    pass
 
     def get_tile(self, x, y):
         try:

@@ -86,12 +86,20 @@ class Game(object):
 
             if self.powers_selection_active:
                 self.powers_scene.start()
+                power = self.powers_scene.selected_power
+                if power is not None:
+                    self.refresh_display()
+                    self.player.actions.try_execute(power.name)
 
-            terminal.clear()
-            self.scene.draw_top_gui()
-            self.camera.draw()
-            self.scene.update_messages()
-            terminal.refresh()
+            self.refresh_display()
+
+
+    def refresh_display(self):
+        terminal.clear()
+        self.scene.draw_top_gui()
+        self.camera.draw()
+        self.scene.update_messages()
+        terminal.refresh()
 
     def spawn_goblins(self, turn):
         level = self.level
