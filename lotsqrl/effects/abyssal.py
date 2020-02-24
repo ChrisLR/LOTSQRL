@@ -20,7 +20,7 @@ class Digesting(Effect):
     def on_start(self):
         host = self.host
         host.game.messaging.add_scoped_message(
-            message_actor=f"You start digesting {self.target}!",
+            message_actor=f"You start digesting {self.target.name}!",
             message_target=f"You are being digested!!",
             actor=host, target=self.target
         )
@@ -28,7 +28,7 @@ class Digesting(Effect):
     def on_finish(self):
         host = self.host
         host.game.messaging.add_scoped_message(
-            message_actor=f"You finish digesting {self.target}!",
+            message_actor=f"You finish digesting {self.target.name}!",
             message_target=f"You have been dissolved!!",
             actor=host, target=self.target
         )

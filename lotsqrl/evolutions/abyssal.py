@@ -1,5 +1,5 @@
 from lotsqrl.evolutions.base import EvolutionNode, Evolution
-from lotsqrl.actions.spiders import DevouringMaw as DevouringMawAction
+from lotsqrl import actions
 
 
 class Giant(Evolution):
@@ -49,8 +49,10 @@ class DevouringMaw(Evolution):
             message_others=f"{host.name}'s jaws enlarge to a disproportionate size!",
             actor=host
         )
+        # TODO Replacing an action is not a good idea
+        # TODO Should simply be a new action and we change the Bump Action
         self._old_action = host.actions.get("bite")
-        host.actions.actions["bite"] = DevouringMawAction(self._old_action.damage, self._old_action.reach)
+        host.actions.actions["bite"] = actions.DevouringMaw(self._old_action.damage, self._old_action.reach)
 
     def on_remove(self):
         host = self.host
@@ -73,8 +75,10 @@ class SwallowWhole(Evolution):
             message_actor=f"You are now able to digest live squirming victims.",
             actor=host
         )
-        self._old_action = host.actions.get("bite")
-        host.actions.actions["bite"] = DevouringMawAction(self._old_action.damage, self._old_action.reach)
+        # TODO Not a good way to add powers
+        swallow_whole = actions.SwallowWhole()
+        host.actions.actions["swallow_whole"] = swallow_whole
+        host.actions.powers["swallow_whole"] = swallow_whole
 
     def on_remove(self):
         host = self.host
