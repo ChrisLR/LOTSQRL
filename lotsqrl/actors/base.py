@@ -54,3 +54,4 @@ class Actor(GameObject):
     def update(self):
         super().update()
         self.cooldowns.update()
+        self.effects.update()
