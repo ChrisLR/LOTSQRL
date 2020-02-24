@@ -9,7 +9,8 @@ class Effects(Component):
     def get_by_name(self, name):
         return self._effects.get(name, 0)
 
-    def set(self, name, effect):
+    def set(self, effect, name=None):
+        name = name or effect.name
         effect.on_start()
         self._effects[name] = effect
 
