@@ -379,11 +379,20 @@ class SwallowWhole(TouchAction):
 
     def execute(self, actor, target):
         game = actor.game
+        if target is game.boss:
+            game.messaging.add_scoped_message(
+                message_actor=f"You try to swallow {target.name} but it evades you!",
+                message_target=f"{actor.name} tries to swallow you but you evade it!!",
+                message_others=f"{actor.name} tries to swallow {target.name} but is evaded!",
+                actor=actor, target=target
+            )
+            return
+
         game.messaging.add_scoped_message(
-            message_actor=f"You swallow {target}!",
-            message_target=f"{actor} swallows you!!",
-            message_others=f"{actor} swallows from {target}",
+            message_actor=f"You swallow {target.name}!",
+            message_target=f"{actor.name} swallows you!!",
+            message_others=f"{actor.name} swallows {target.name}",
             actor=actor, target=target
         )
         game.level.remove_actor(target)
-        actor.effects.set(effects.Digesting(actor, -1, target, 2, 2))
+        actor.effects.set(effects.Digesting(actor, -1, target, 1, 1))
