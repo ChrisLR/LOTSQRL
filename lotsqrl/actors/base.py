@@ -13,10 +13,9 @@ class Actor(GameObject):
         super().__init__(game, display_char, name, x, y, team=team)
         self.actions = components.Action(self, self.base_actions)
         self.cooldowns = components.Cooldowns(self)
-        self.hp = hp
-        self.max_hp = hp
         self.dead = False
         self.display_priority = 9
+        self.health = components.Health(self, hp)
         self.stunned = 0
         self.target = None
         self.path_find = None

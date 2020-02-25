@@ -12,8 +12,8 @@ class Digesting(Effect):
 
     def update(self):
         super().update()
-        self.host.hp += self.regen_per_turn
-        self.target.hp -= self.damage_per_turn
+        self.host.health.heal(self.regen_per_turn)
+        self.target.health.damage(self.damage_per_turn, leave_corpse=False)
         if self.target.hp <= 0:
             self.lifetime = 0
 
@@ -32,7 +32,6 @@ class Digesting(Effect):
             message_target=f"You have been dissolved!!",
             actor=host, target=self.target
         )
-        self.target.on_death(leave_corpse=False)
 
     def on_cancel(self):
         self.on_death()

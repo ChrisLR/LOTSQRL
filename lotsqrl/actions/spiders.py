@@ -225,7 +225,7 @@ class Jump(Action):
                 dy = utils.sign(dy) * 2
 
                 for collision in collisions:
-                    collision.hp -= random.randint(1, 3)
+                    collision.health.damage(random.randint(1, 3))
                     moved = movement.move_to(collision, collision.x + dx, collision.y + dy, bump=False)
                     if moved is False and collision is not game.boss:
                         messaging.add_scoped_message(
@@ -234,7 +234,6 @@ class Jump(Action):
                             message_others=f"{collision.name} is crushed under {actor.name}!",
                             actor=actor, target=collision, scope=MessageScope.TargetsPlayer
                         )
-                        collision.on_death()
                         if actor.score is not None:
                             actor.score.enemies_crushed += 1
 

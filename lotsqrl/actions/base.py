@@ -79,11 +79,7 @@ class MeleeAttack(Action):
     def on_hit(self, actor, target):
         damage_min, damage_max = self.damage
         damage = random.randint(damage_min, damage_max)
-        target.hp -= damage
-        if target.hp <= 0:
-            target.on_death()
-            if actor.score is not None:
-                actor.score.kills += 1
+        target.health.damage(damage, actor)
 
     def on_miss(self, actor, target):
         pass
