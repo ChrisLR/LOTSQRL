@@ -40,7 +40,7 @@ class GameScene(object):
             terminal.printf(0, i, "|")
             terminal.printf(screen_width - 1, i, "|")
 
-        terminal.printf(2, 1, "Hp:%s" % player.hp)
+        terminal.printf(2, 1, "Hp:%s" % player.health.hp)
         terminal.printf(2, 2, "Turn:%s" % turn)
         terminal.printf(11, 1, "Cooldowns")
         terminal.printf(11, 2, "Egg:%s" % player.cooldowns.get("lay_egg"))

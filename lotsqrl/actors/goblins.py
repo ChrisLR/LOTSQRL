@@ -5,11 +5,10 @@ from lotsqrl.teams import Team, ActorTypes
 
 class Goblin(Actor):
     actor_type = ActorTypes.Goblin
-    ascii_color = 'green'
     base_actions = (actions.Stab(),)
 
     def __init__(self, game, x, y):
-        super().__init__(game, 5, "g", "Goblin", x, y, team=Team.Goblin)
+        super().__init__(game, 5, "Goblin", x, y, team=Team.Goblin, ascii_char="g", ascii_color="green")
         self.display_priority = 8
 
     def act(self):
@@ -31,11 +30,10 @@ class Goblin(Actor):
 
 class GoblinChief(Actor):
     actor_types = ActorTypes.GoblinChief
-    ascii_color = 'green'
     base_actions = (actions.Headbutt(), actions.Slice(),)
 
     def __init__(self, game, x, y):
-        super().__init__(game, 50, "G", "Goblin Chief", x, y, team=Team.Goblin)
+        super().__init__(game, 50, "Goblin Chief", x, y, team=Team.Goblin, ascii_char="G", ascii_color="green")
         self.display_priority = 7
         self.headbutt_cooldown = 0
 

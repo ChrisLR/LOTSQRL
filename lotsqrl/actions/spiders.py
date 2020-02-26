@@ -94,10 +94,7 @@ class ConsumeMinion(TouchAction):
         )
         actor.level.remove_actor(target)
         actor.target = None
-        if actor.hp + self.heal <= actor.max_hp:
-            actor.hp += self.heal
-        else:
-            actor.hp = actor.max_hp
+        actor.health.heal(self.heal)
 
         return True
 
@@ -110,7 +107,7 @@ class DevouringMaw(Bite):
         with utils.silence(actor.game):
             super().on_hit(actor, target)
 
-        if target.hp <= 0:
+        if target.health.hp <= 0:
             with utils.silence(actor.game):
                 actor.actions.execute("eat_corpse", target=target.corpse)
             actor.game.messaging.add_scoped_message(
@@ -168,11 +165,7 @@ class EatCorpse(TouchAction):
         )
         actor.level.remove_actor(target)
         actor.target = None
-        if actor.hp + self.heal <= actor.max_hp:
-            actor.hp += self.heal
-        else:
-            actor.hp = actor.max_hp
-
+        actor.health.heal(self.heal)
         evolution = actor.evolution
         if evolution is not None:
             evolution.consume(target)

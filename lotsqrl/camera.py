@@ -75,10 +75,10 @@ class Camera(object):
         terminal.font("")
 
     def _draw_graphic(self, x, y, game_object):
-        terminal.put(x, y, game_object.display_char)
+        terminal.put(x, y, game_object.display.tile_char)
 
     def _draw_ascii(self, x, y, game_object):
-        terminal.printf(x, y, game_object.ascii_str())
+        terminal.printf(x, y, game_object.display.ascii_str())
 
 
 sprite_chars = (

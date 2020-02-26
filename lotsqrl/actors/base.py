@@ -9,12 +9,12 @@ class Actor(GameObject):
     default_controller = controllers.AIController
     evolution_worth = 1
 
-    def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
-        super().__init__(game, display_char, name, x, y, team=team)
+    def __init__(self, game, hp, name="", x=0, y=0, team=None,
+                 ascii_char="", ascii_color="white", tile_char="", display_priority=9):
+        super().__init__(game, name, x, y, team, ascii_char, ascii_color, tile_char, display_priority)
         self.actions = components.Action(self, self.base_actions)
         self.cooldowns = components.Cooldowns(self)
         self.dead = False
-        self.display_priority = 9
         self.health = components.Health(self, hp)
         self.stunned = 0
         self.target = None
@@ -24,6 +24,7 @@ class Actor(GameObject):
         self.evolution = None
         self.corpse = None
         self.effects = components.Effects(self)
+        self.armor = components.Armor(self)
 
     def act(self):
         controller = self.controller

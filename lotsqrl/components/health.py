@@ -1,6 +1,9 @@
-class Health(object):
+from lotsqrl.components.base import Component
+
+
+class Health(Component):
     def __init__(self, host, max_hp, hp=None):
-        self.host = host
+        super().__init__(host)
         self.max_hp = max_hp
         self.hp = hp or max_hp
 

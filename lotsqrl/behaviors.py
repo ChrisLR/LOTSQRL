@@ -123,7 +123,7 @@ class EatCorpse(Behavior):
         """
         Priority is based on health but adjusted when corpses are close
         """
-        if actor.hp >= actor.max_hp:
+        if actor.health.hp >= actor.max_hp:
             return Priority.Never
 
         corpses = actor.level.get_actors_by_team(Team.Corpse)
@@ -136,8 +136,8 @@ class EatCorpse(Behavior):
         closest_corpse = utils.get_closest_actor(actor, corpses)
         dist = utils.get_distance(actor, closest_corpse)
 
-        hp = actor.hp
-        quarter_hp = actor.max_hp / 4
+        hp = actor.health.hp
+        quarter_hp = actor.health.max_hp / 4
         if hp >= quarter_hp * 3:
             if dist <= 1:
                 return Priority.High

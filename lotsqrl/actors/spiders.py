@@ -9,7 +9,7 @@ class Egg(Actor):
     default_controller = controllers.NullController
 
     def __init__(self, game, x, y):
-        super().__init__(game, 1, "0", "Egg", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 1, "Egg", x, y, team=Team.SpiderQueen, ascii_char="0")
         self.hatch_countdown = 10
         self.display_priority = 9
 
@@ -30,7 +30,7 @@ class Cocoon(Actor):
     default_controller = controllers.NullController
 
     def __init__(self, game, x, y):
-        super().__init__(game, 1, "(", "Cocoon", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 1, "Cocoon", x, y, team=Team.SpiderQueen, ascii_char="(")
         self.hatch_countdown = 10
         self.display_priority = 9
         self.burrowed = False
@@ -52,8 +52,9 @@ class Arachnid(Actor):
     base_actions = (actions.Bite(), actions.EatCorpse())
     bite_damage_range = (1, 4)
 
-    def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None):
-        super().__init__(game, hp, display_char, name, x, y, team)
+    def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None,
+                 ascii_char="s", ascii_color="red", tile_char=None):
+        super().__init__(game, hp, display_char, name, x, y, team, ascii_char, ascii_color, tile_char)
         self.evolution = components.Evolution(self, None)
 
 
@@ -85,7 +86,7 @@ class Spider(Arachnid):
     behaviors = [behaviors.Attack, behaviors.EatCorpse, behaviors.JumpOnEnemy]
 
     def __init__(self, game, x, y):
-        super().__init__(game, 10, "S", "Spider", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 10, "Spider", x, y, team=Team.SpiderQueen, ascii_char="S")
         self.target = None
         self.display_priority = 8
         self.max_hp = 20
@@ -114,7 +115,7 @@ class SpiderQueen(Arachnid):
         # TODO The string for ascii mode must not be the same as the one for the graphics.
         # TODO The @ must be assigned to the player, no matter what it is controlling
         # TODO We will need two seperate tilesets
-        super().__init__(game, 20, "@", "Spider Queen", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 20, "Spider Queen", x, y, team=Team.SpiderQueen, ascii_char="@")
         self.evolution = components.Evolution(self, evolutions.create_spider_queen_evolution())
         self.is_player = True
         self.score = Score()

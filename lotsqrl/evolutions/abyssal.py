@@ -1,5 +1,5 @@
+from lotsqrl import actions, armors
 from lotsqrl.evolutions.base import EvolutionNode, Evolution
-from lotsqrl import actions
 
 
 class Giant(Evolution):
@@ -11,8 +11,8 @@ class Giant(Evolution):
 
     def on_apply(self):
         host = self.host
-        self.host.max_hp *= 2
-        self.host.hp *= 2
+        self.host.health.max_hp *= 2
+        self.host.health.hp *= 2
         host.game.messaging.add_scoped_message(
             message_actor=f"You rapidly grow into a monstrous size!",
             message_others=f"{host.name} rapidly grows into a monstrous size!",
@@ -21,10 +21,10 @@ class Giant(Evolution):
 
     def on_remove(self):
         host = self.host
-        new_max = int(round(host.max_hp / 2))
-        host.max_hp = new_max
-        if host.hp > new_max:
-            host.hp = new_max
+        new_max = int(round(host.health.max_hp / 2))
+        host.health.max_hp = new_max
+        if host.health.hp > new_max:
+            host.health.hp = new_max
 
         host.game.messaging.add_scoped_message(
             message_actor=f"You rapidly shrink into your normal size!",
@@ -94,17 +94,38 @@ class ThickChitin(Evolution):
     cost = 5
     description = "Your chitin is tough, damage is reduced by half."
 
+    def on_apply(self):
+        self.host.armor.set(armors.ThickChitin)
+
+    def on_remove(self):
+        # TODO This should just remove the specific armor and will break out if ever removed right now
+        self.host.armor.set(None)
+
 
 class SpikedChitin(Evolution):
     name = "Spiked Chitin"
     cost = 10
     description = "Spikes now cover your body and enemies will hurt themselves with every attack"
 
+    def on_apply(self):
+        self.host.armor.set(armors.SpikedChitin)
+
+    def on_remove(self):
+        # TODO This should just remove the specific armor and will break out if ever removed right now
+        self.host.armor.set(None)
+
 
 class PoisonousHairs(Evolution):
     name = "Poisonous Hairs"
     cost = 20
     description = "Any creature stupid enough to attack you will fatally poison themselves."
+
+    def on_apply(self):
+        self.host.armor.set(armors.PoisonousHairs)
+
+    def on_remove(self):
+        # TODO This should just remove the specific armor and will break out if ever removed right now
+        self.host.armor.set(None)
 
 
 class RazorPincers(Evolution):
