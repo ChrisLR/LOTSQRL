@@ -6,7 +6,7 @@ class Display(Component):
         super().__init__(host)
         self.ascii_char = ascii_char
         self.ascii_color = ascii_color
-        self.tile_char = tile_char or ascii_char
+        self.tile_char = tile_char if tile_char else ascii_char
         self.display_priority = display_priority
 
     def ascii_str(self):

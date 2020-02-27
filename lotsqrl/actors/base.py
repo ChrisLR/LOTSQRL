@@ -37,6 +37,9 @@ class Actor(GameObject):
         pass
 
     def on_death(self, leave_corpse=True):
+        if self.dead:
+            return
+
         self.blocking = False
         self.dead = True
         self.game.messaging.add_scoped_message(

@@ -9,14 +9,15 @@ class ThickChitin(Armor):
 
 class SpikedChitin(ThickChitin):
     def on_damaged(self, damage, attacker):
-        attacker.health.damage(2)
-        if attacker.health.hp <= 0:
-            self.host.game.messaging.add_scoped_message(
-                message_actor=f"{attacker.name} impales itself on your spikes!",
-                message_target=f"You impale yourself on {self.host.name}'s spikes!",
-                message_others=f"{attacker.name} impales itself on {self.host.name}'s spikes!",
-                actor=self.host, target=attacker
-            )
+        if attacker.health.hp > 0:
+            attacker.health.damage(2)
+            if attacker.health.hp <= 0:
+                self.host.game.messaging.add_scoped_message(
+                    message_actor=f"{attacker.name} impales itself on your spikes!",
+                    message_target=f"You impale yourself on {self.host.name}'s spikes!",
+                    message_others=f"{attacker.name} impales itself on {self.host.name}'s spikes!",
+                    actor=self.host, target=attacker
+                )
 
 
 class PoisonousHairs(SpikedChitin):

@@ -13,9 +13,10 @@ class Digesting(Effect):
     def update(self):
         super().update()
         self.host.health.heal(self.regen_per_turn)
-        self.target.health.damage(self.damage_per_turn, leave_corpse=False)
-        if self.target.health.hp <= 0:
-            self.lifetime = 0
+        if self.target.health.hp > 0:
+            self.target.health.damage(self.damage_per_turn, leave_corpse=False)
+            if self.target.health.hp <= 0:
+                self.lifetime = 0
 
     def on_start(self):
         host = self.host

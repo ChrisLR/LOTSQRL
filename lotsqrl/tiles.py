@@ -1,17 +1,13 @@
-class Tile(object):
-    display_char = ""
-    color = ""
+from lotsqrl.components import Display
 
-    @classmethod
-    def ascii_str(cls):
-        return "[color=%s]%s[/color]" % (cls.color, cls.display_char)
+
+class Tile(object):
+    display = Display(None, "", "", "", 10)
 
 
 class CaveWall(Tile):
-    display_char = "#"
-    color = "#daa520"
+    display = Display(None, "#", "#daa520", "#", 10)
 
 
 class CaveFloor(Tile):
-    display_char = "."
-    color = "gray"
+    display = Display(None, ".", "gray", ".", 10)

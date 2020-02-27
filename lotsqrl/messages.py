@@ -52,11 +52,14 @@ class Messaging(object):
 
         player = self.game.player
         if actor is player:
-            self.messages.append(message_actor)
+            if message_actor:
+                self.messages.append(message_actor)
         elif target is player or player in targets:
-            self.messages.append(message_target)
+            if message_target:
+                self.messages.append(message_target)
         else:
-            self.messages.append(message_others)
+            if message_others:
+                self.messages.append(message_others)
 
         if show_now:
             self.game.scene.update_messages()

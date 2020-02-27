@@ -6,7 +6,8 @@ from lotsqrl import config
 
 
 class Camera(object):
-    def __init__(self, focus_on, options, screen_info):
+    def __init__(self, game, focus_on, options, screen_info):
+        self.game = game
         self.options = options
         self.screen_info = screen_info
         self.focus_on = focus_on
@@ -26,6 +27,9 @@ class Camera(object):
             terminal.layer(1)
 
         draw_offset_y = screen_info.top_gui_height + 1
+        if level is None:
+            level = self.game.level
+
         for y, row_tiles in enumerate(level.tiles):
             dy = y - oy
             for x, tile in enumerate(row_tiles):

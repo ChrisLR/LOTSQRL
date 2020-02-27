@@ -16,7 +16,7 @@ class Game(object):
         self.boss = actors.GoblinChief(self, 0, 0)
         self.player = actors.SpiderQueen(self, 0, 0)
         self.player.controller = controllers.PlayerController(self.player)
-        self.camera = Camera(self.player, options, screen_info)
+        self.camera = Camera(self, self.player, options, screen_info)
         self.game_won = False
         self.options = options
         self.screen_info = screen_info
@@ -92,7 +92,6 @@ class Game(object):
                     self.player.actions.try_execute(power.name)
 
             self.refresh_display()
-
 
     def refresh_display(self):
         terminal.clear()

@@ -52,9 +52,9 @@ class Arachnid(Actor):
     base_actions = (actions.Bite(), actions.EatCorpse())
     bite_damage_range = (1, 4)
 
-    def __init__(self, game, hp, display_char="", name="", x=0, y=0, team=None,
+    def __init__(self, game, hp, name="", x=0, y=0, team=None,
                  ascii_char="s", ascii_color="red", tile_char=None):
-        super().__init__(game, hp, display_char, name, x, y, team, ascii_char, ascii_color, tile_char)
+        super().__init__(game, hp, name, x, y, team, ascii_char, ascii_color, tile_char)
         self.evolution = components.Evolution(self, None)
 
 
@@ -64,7 +64,7 @@ class Spiderling(Arachnid):
     behaviors = [behaviors.Attack, behaviors.BurrowIntoCocoon, behaviors.EatCorpse]
 
     def __init__(self, game, x, y):
-        super().__init__(game, 4, "s", "Spiderling", x, y, team=Team.SpiderQueen)
+        super().__init__(game, 4, "Spiderling", x, y, team=Team.SpiderQueen)
         self.target = None
         self.display_priority = 8
         self.max_hp = 8

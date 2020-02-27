@@ -4,7 +4,7 @@ from lotsqrl import components
 
 class GameObject(object):
     def __init__(self, game, name="", x=0, y=0, team=None,
-                 ascii_char="", ascii_color="white", tile_char="", display_priority=10):
+                 ascii_char="", ascii_color="white", tile_char=None, display_priority=10):
         self.game = game
         self.name = name
         self.x = x
@@ -25,7 +25,7 @@ class Corpse(GameObject):
     actor_type = ActorTypes.Corpse
 
     def __init__(self, game, name, x=0, y=0, evolution_worth=1):
-        super().__init__(game, "the corpse of %s" % name, x, y, "%")
+        super().__init__(game, "the corpse of %s" % name, x, y, ascii_char="%")
         self.blocking = False
         self.team = Team.Corpse
         self.dead = True

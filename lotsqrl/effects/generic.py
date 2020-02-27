@@ -11,9 +11,19 @@ class Poison(Effect):
 
     def update(self):
         super().update()
-        self.host.health.damage(self.damage_per_turn)
-        if self.host.health.hp <= 0:
-            self.lifetime = 0
+        if self.host.health.hp >= 0:
+            self.host.health.damage(self.damage_per_turn)
+            if self.host.health.hp <= 0:
+                self.lifetime = 0
+                host = self.host
+                host.game.messaging.add_scoped_message(
+                    message_actor=f"{host.name} died from your poison!",
+                    message_target=f"You died from poisoning!",
+                    message_others=f"{host.name} has died from poisoning!",
+                    target=host, actor=self.poisoner,
+                )
+                if self.poisoner and self.poisoner.score:
+                    self.poisoner.score.kills += 1
 
     def on_start(self):
         host = self.host
@@ -31,14 +41,3 @@ class Poison(Effect):
 
     def on_cancel(self):
         self.on_finish()
-
-    def on_death(self):
-        host = self.host
-        host.game.messaging.add_scoped_message(
-            message_actor=f"{host.name} died from your poison!",
-            message_target=f"You died from poisoning!",
-            message_others=f"{host.name} has died from poisoning!",
-            target=host, actor=self.poisoner,
-        )
-        if self.poisoner and self.poisoner.score:
-            self.poisoner.score.kills += 1
