@@ -53,7 +53,7 @@ class DevouringMaw(Evolution):
         # Original plan was to keep the same damage and reach....
         # host.actions.actions["bite"] = actions.DevouringMaw(self._old_action.damage, self._old_action.reach)
         self.host.bumper = bumpers.Basic(self.host, "bite_devour")
-        
+
     def on_remove(self):
         host = self.host
         host.game.messaging.add_scoped_message(

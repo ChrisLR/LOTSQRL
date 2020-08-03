@@ -74,7 +74,7 @@ def is_allied(actor, target):
 
 def is_enemy(actor, target):
     # Just a basic way, should end up using a component
-    if actor.team is Team.SpiderQueen and target is Team.Goblin:
+    if actor.team is Team.SpiderQueen and target.team is Team.Goblin:
         return True
     elif actor.team is Team.Goblin and target.team is Team.SpiderQueen:
         return True
