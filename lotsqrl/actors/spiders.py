@@ -1,4 +1,4 @@
-from lotsqrl import actions, behaviors, components, controllers, evolutions, inputmap
+from lotsqrl import actions, behaviors, bumpers, components, controllers, evolutions, inputmap
 from lotsqrl.actors.base import Actor
 from lotsqrl.score import Score
 from lotsqrl.teams import Team, ActorTypes
@@ -56,6 +56,7 @@ class Arachnid(Actor):
                  ascii_char="s", ascii_color="red", tile_char=None):
         super().__init__(game, hp, name, x, y, team, ascii_char, ascii_color, tile_char)
         self.evolution = components.Evolution(self, None)
+        self.bumper = bumpers.Basic(self, "bite")
 
 
 class Spiderling(Arachnid):
@@ -69,16 +70,6 @@ class Spiderling(Arachnid):
         self.display_priority = 8
         self.max_hp = 8
 
-    def bump(self, target):
-        if target.actor_type == ActorTypes.Cocoon and not target.burrowed:
-            return self.actions.try_execute("burrow_egg", target)
-
-        if target is self.target or target.team == Team.Goblin:
-            if not target.dead:
-                return self.actions.try_execute("bite", target)
-
-        return False
-
 
 class Spider(Arachnid):
     actor_type = ActorTypes.Spider
@@ -90,13 +81,6 @@ class Spider(Arachnid):
         self.target = None
         self.display_priority = 8
         self.max_hp = 20
-
-    def bump(self, target):
-        if target is self.target or target.team == Team.Goblin:
-            if not target.dead:
-                return self.actions.try_execute("bite", target)
-
-        return False
 
 
 class SpiderQueen(Arachnid):
@@ -122,7 +106,3 @@ class SpiderQueen(Arachnid):
         self.moved = False
         self.display_priority = 1
         self.max_hp = 40
-
-    def bump(self, target):
-        if target.team == Team.Goblin:
-            return self.actions.try_execute("bite", target)

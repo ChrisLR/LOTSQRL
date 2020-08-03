@@ -4,6 +4,7 @@ from bearlibterminal import terminal
 
 from lotsqrl import tiles
 from lotsqrl.gameobjects import TargetLine
+from lotsqrl.teams import Team
 
 
 def get_closest_actor(origin, actors):
@@ -60,6 +61,22 @@ def is_in_direct_line(actor, target):
         # Diagonals
         return True
     elif dx == 0 or dy == 0:
+        return True
+    return False
+
+
+def is_allied(actor, target):
+    # Just a basic way, should end up using a component
+    if actor.team == target.team:
+        return True
+    return False
+
+
+def is_enemy(actor, target):
+    # Just a basic way, should end up using a component
+    if actor.team is Team.SpiderQueen and target is Team.Goblin:
+        return True
+    elif actor.team is Team.Goblin and target.team is Team.SpiderQueen:
         return True
     return False
 

@@ -1,4 +1,4 @@
-from lotsqrl import components, controllers
+from lotsqrl import bumpers, components, controllers
 from lotsqrl.gameobjects import GameObject, Corpse
 from lotsqrl.messages import MessageScope
 
@@ -25,6 +25,7 @@ class Actor(GameObject):
         self.corpse = None
         self.effects = components.Effects(self)
         self.armor = components.Armor(self)
+        self.bumper = bumpers.Null(self)
 
     def act(self):
         controller = self.controller
@@ -32,9 +33,6 @@ class Actor(GameObject):
         if can_act:
             return controller.act()
         return can_act
-
-    def bump(self, target):
-        pass
 
     def on_death(self, leave_corpse=True):
         if self.dead:

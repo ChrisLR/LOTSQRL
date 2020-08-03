@@ -1,4 +1,4 @@
-from lotsqrl import teams
+from lotsqrl import teams, utils
 
 
 class Filter(object):
@@ -7,27 +7,13 @@ class Filter(object):
 
 
 class OnlyEnemies(Filter):
-    # TODO This relation does not belong here
-    alliance_map = {
-        teams.Team.SpiderQueen: teams.Team.Goblin,
-        teams.Team.Goblin: teams.Team.SpiderQueen
-    }
-
     def filter(self, actor, targets):
-        enemy_team = self.alliance_map.get(actor.team)
-        return filter(lambda t: t.team == enemy_team, targets)
+        return filter(lambda t: utils.is_enemy(actor, t), targets)
 
 
 class OnlyAllies(Filter):
-    # TODO This relation does not belong here
-    alliance_map = {
-        teams.Team.SpiderQueen: teams.Team.SpiderQueen,
-        teams.Team.Goblin: teams.Team.Goblin
-    }
-
     def filter(self, actor, targets):
-        ally_team = self.alliance_map.get(actor.team)
-        return filter(lambda t: t.team == ally_team, targets)
+        return filter(lambda t: utils.is_allied(actor, t), targets)
 
 
 class OnlyCorpses(Filter):

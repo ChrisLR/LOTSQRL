@@ -1,4 +1,4 @@
-from lotsqrl import actions, armors
+from lotsqrl import actions, armors, bumpers
 from lotsqrl.evolutions.base import EvolutionNode, Evolution
 
 
@@ -40,7 +40,7 @@ class DevouringMaw(Evolution):
 
     def __init__(self, host):
         super().__init__(host)
-        self._old_action = None
+        self._old_bump = None
 
     def on_apply(self):
         host = self.host
@@ -49,11 +49,11 @@ class DevouringMaw(Evolution):
             message_others=f"{host.name}'s jaws enlarge to a disproportionate size!",
             actor=host
         )
-        # TODO Replacing an action is not a good idea
-        # TODO Should simply be a new action and we change the Bump Action
-        self._old_action = host.actions.get("bite")
-        host.actions.actions["bite"] = actions.DevouringMaw(self._old_action.damage, self._old_action.reach)
-
+        self._old_bump = host.bumper
+        # Original plan was to keep the same damage and reach....
+        # host.actions.actions["bite"] = actions.DevouringMaw(self._old_action.damage, self._old_action.reach)
+        self.host.bumper = bumpers.Basic(self.host, "bite_devour")
+        
     def on_remove(self):
         host = self.host
         host.game.messaging.add_scoped_message(
@@ -61,7 +61,7 @@ class DevouringMaw(Evolution):
             message_others=f"{host.name}'s jaws shrink to a relatively normal size.",
             actor=host
         )
-        host.actions.actions["bite"] = self._old_action
+        self.host.bumper = self._old_bump
 
 
 class SwallowWhole(Evolution):
@@ -95,9 +95,21 @@ class ThickChitin(Evolution):
     description = "Your chitin is tough, damage is reduced by half."
 
     def on_apply(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"Your chitin hardens.",
+            message_others=f"{host.name}'s chitin hardens!",
+            actor=host
+        )
         self.host.armor.set(armors.ThickChitin)
 
     def on_remove(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"Your chitin becomes softer.",
+            message_others=f"{host.name}'s chitin becomes softer.",
+            actor=host
+        )
         # TODO This should just remove the specific armor and will break out if ever removed right now
         self.host.armor.set(None)
 
@@ -108,9 +120,21 @@ class SpikedChitin(Evolution):
     description = "Spikes now cover your body and enemies will hurt themselves with every attack"
 
     def on_apply(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"Large spikes form on your chitin.",
+            message_others=f"Large spikes form on {host.name}'s chitin!",
+            actor=host
+        )
         self.host.armor.set(armors.SpikedChitin)
 
     def on_remove(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"The spikes on your chitin retract.",
+            message_others=f"The spikes on {host.name}'s chitin retract.",
+            actor=host
+        )
         # TODO This should just remove the specific armor and will break out if ever removed right now
         self.host.armor.set(None)
 
@@ -121,9 +145,21 @@ class PoisonousHairs(Evolution):
     description = "Any creature stupid enough to attack you will fatally poison themselves."
 
     def on_apply(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"You grow poisonous hairs.",
+            message_others=f"{host.name} grows poisonous hairs.",
+            actor=host
+        )
         self.host.armor.set(armors.PoisonousHairs)
 
     def on_remove(self):
+        host = self.host
+        host.game.messaging.add_scoped_message(
+            message_actor=f"You shed your poisonous hairs.",
+            message_others=f"{host.name} sheds its poisonous hairs.",
+            actor=host
+        )
         # TODO This should just remove the specific armor and will break out if ever removed right now
         self.host.armor.set(None)
 

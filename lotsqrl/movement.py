@@ -65,7 +65,7 @@ def move_to(actor, x, y, bump=True):
         collides = actor.level.get_actors_by_pos(x, y)
         collision = next((collide for collide in collides if collide is not actor and collide.blocking), None)
         if collision is not None and bump is True:
-            return actor.bump(collision)
+            return actor.bumper.bump(collision)
         else:
             actor.x = x
             actor.y = y

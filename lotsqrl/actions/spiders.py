@@ -101,7 +101,7 @@ class ConsumeMinion(TouchAction):
 
 class DevouringMaw(Bite):
     base_damage = (1, 4)
-    name = "bite"
+    name = "bite_devour"
 
     def on_hit(self, actor, target):
         with utils.silence(actor.game):
